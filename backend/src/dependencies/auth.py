@@ -3,11 +3,11 @@ from fastapi.security import HTTPBearer
 from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.src.core import config
-from backend.src.database.session_manager import get_async_db
+from core import config
+from database.session_manager import get_async_db
 import logging
-from backend.src.models import Users
-from backend.src.utils import jwt
+from models import Users
+from utils import jwt
 
 security = HTTPBearer()
 logger = logging.getLogger(__name__)

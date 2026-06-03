@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, Dict, Optional
 import logging
-from backend.src.dependencies.auth import decode_token
+from dependencies.auth import decode_token
 from core import config
 from models.Users import AppSession, Users
 from schemas.auth_schema import LoginUser, RegiserUser, UserRole
