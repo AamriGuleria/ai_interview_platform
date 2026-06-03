@@ -24,5 +24,6 @@ class Config(BaseSettings):
     pool_pre_ping: bool = True
     pool_use_lifo: bool = True
     jwt_secret_key: str = "default"
+    algorithm: str = "HS256"
 
 config = Config()

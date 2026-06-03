@@ -1,7 +1,11 @@
-from fastapi import FastAPI
+from typing import Annotated
+
+from fastapi import Depends, FastAPI
 import uvicorn 
 from apis import api_router
+
 app = FastAPI()
+
 
 @app.get("/")
 async def read_root():
