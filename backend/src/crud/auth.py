@@ -1,12 +1,17 @@
+from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
+from typing import Any, Dict, Optional
 import logging
+from backend.src.dependencies.auth import decode_token
+from core import config
 from models.Users import AppSession, Users
 from schemas.auth_schema import LoginUser, RegiserUser, UserRole
 from utils.jwt import create_access_token, create_refresh_token
 from utils.security import hash_password, verify_password
 from fastapi import HTTPException
+from jose import ExpiredSignatureError, JWTError, jwt
 
 logger = logging.getLogger(__name__)
 
@@ -98,4 +103,79 @@ class AuthService:
             }
         except Exception as e:
             logger.error(f"Error occured due to {e}")
+            raise
+
+    async def refresh_access_token(self, refresh_token: str)-> Dict[str, Any]:
+        try:
+            payload = decode_token(refresh_token)
+            if payload.get("type") != "refresh":
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid token type"
+                )
+            user_id = int(
+                payload["sub"]
+            )
+            result = await self.db.execute(
+                select(Users)
+                .where(
+                    Users.id == user_id,
+                    Users.is_active == True
+                )
+            )
+            valid_user = result.scalar_one_or_none()
+
+            if not valid_user:
+                raise HTTPException(
+                    status_code=401,
+                    detail="User Not Found"
+                )
+            # Find Valid Session to exist
+            session_result = await self.db.execute(
+                select(AppSession)
+                .where(
+                    AppSession.user_id == user_id,
+                    AppSession.is_revoked.is_(False)
+                )
+            )
+
+            sessions = session_result.scalars().all()
+            valid_session = None
+
+            for session in sessions:
+                if verify_password(
+                    refresh_token,
+                    session.refresh_token_hash
+                ):
+                    valid_session = session
+                    break
+            if valid_session.expires_at < datetime.utcnow():
+                raise HTTPException(
+                    status_code=401,
+                    detail="Refresh token expired"
+                )
+            access_token = create_access_token(
+                {
+                    "sub": str(valid_user.id),
+                    "email": valid_user.email,
+                    "role": valid_user.role.value
+                })
+            return {
+                "access_token": access_token,
+                "token_type": "bearer"
+            }
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=401,
+                detail="Refresh token expired"
+            )
+
+        except JWTError:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid refresh token"
+            )
+
+        except Exception as e:
+            logger.exception("Unexpected error")
             raise

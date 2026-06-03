@@ -44,3 +44,10 @@ async def get_current_user(
             status_code=401,
             detail="Invalid token"
         )
+
+def decode_token(token: str):
+    return jwt.decode(
+        token,
+        config.jwt_secret_key,
+        algorithms=[config.algorithm]
+    )

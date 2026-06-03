@@ -29,3 +29,13 @@ async def login_user(
     ):
     service = AuthService(db)
     return await service.login_user(user)
+
+
+@router.post("/refresh")
+async def refresh_access_token(
+    refresh_token: str,
+    # current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+    ):
+    service = AuthService(db)
+    return await service.refresh_access_token(refresh_token)
