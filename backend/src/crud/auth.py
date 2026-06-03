@@ -179,3 +179,56 @@ class AuthService:
         except Exception as e:
             logger.exception("Unexpected error")
             raise
+
+    async def logout_session(
+        self, refresh_token: str, current_user: Users
+    ):
+        try:
+            payload = decode_token(refresh_token)
+            if payload.get("type") != "refresh":
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid token type"
+                )
+            user_id = int(payload["sub"])
+            if user_id != current_user.id:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Token does not belong to current user"
+                )
+            result = await self.db.execute(
+                select(AppSession)
+                .where(
+                    AppSession.user_id == user_id,
+                    # AppSession.refresh_token_hash == hash_password(refresh_token),
+                    AppSession.is_revoked.is_(False)
+                )
+            )
+            sessions = result.scalars().all()
+            session_to_revoke = None
+            for session in sessions:
+                if verify_password(
+                    refresh_token,
+                    session.refresh_token_hash
+                ):
+                    session_to_revoke = session
+                    break
+            if not session_to_revoke:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Session not found"
+                )
+
+            session_to_revoke.is_revoked = True
+            return {
+                "message": "Successfully logged out"
+            }
+
+        except JWTError:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid refresh token"
+            )
+        except Exception as e:
+            logger.exception(f"Unexpected error: {e}")
+            raise
