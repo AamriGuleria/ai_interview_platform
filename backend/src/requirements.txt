@@ -1,0 +1,10 @@
+fastapi[standard]==0.136.1
+uvicorn[standard]==0.30.3
+SQLAlchemy==2.0.19
+pydantic-settings
+Flask-SQLAlchemy==3.1.1
+asyncpg # Async driver for psql
+alembic
+psycopg2-binary
+passlib[bcrypt]
+python-jose[cryptography]

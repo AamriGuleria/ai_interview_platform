@@ -1,0 +1,1 @@
+# alembic command runs from backend folder
