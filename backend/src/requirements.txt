@@ -7,4 +7,5 @@ asyncpg # Async driver for psql
 alembic
 psycopg2-binary
 passlib[bcrypt]
+bcrypt==4.0.1
 python-jose[cryptography]

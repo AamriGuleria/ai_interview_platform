@@ -88,8 +88,6 @@ class SessionManager():
             self.async_engine = create_async_engine(
                 self.async_database_url,
                 echo=self.echo,
-                autocommit=False,
-                autoflush=False,
                 poolclass=AsyncAdaptedQueuePool,
                 **self.pool_config,
             )

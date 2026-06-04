@@ -35,7 +35,7 @@ class Users(Base):
         onupdate=datetime.utcnow
     )
     role = Column(
-        Enum(UserRole),
+        Enum(UserRole, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=UserRole.CANDIDATE
     )
