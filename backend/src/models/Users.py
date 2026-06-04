@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import ConfigDict
-from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String, ForeignKey, Text
+from sqlalchemy import ARRAY, Boolean, Column, DateTime, Enum, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import  relationship
 
 from schemas.auth_schema import UserRole
@@ -24,7 +24,7 @@ class AppSession(Base):
 
 class Users(Base):
     __tablename__="users"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), nullable=False, unique=True)
     password_hash = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
@@ -39,6 +39,10 @@ class Users(Base):
         nullable=False,
         default=UserRole.CANDIDATE
     )
+    phone_number = Column(String(255), nullable=True)
+    resume_url = Column(String(500), nullable=True)
+    skills = Column(ARRAY(String(255)), nullable=True)
+    experience = Column(Integer, nullable=True)
     sessions = relationship(
         "AppSession",
         back_populates="user",

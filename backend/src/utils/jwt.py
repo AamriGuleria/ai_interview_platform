@@ -19,7 +19,6 @@ def create_access_token(data: dict):
             + timedelta(minutes=ACCESS_TOKEN_EXPIRE_IN_MINUTES)
         )
         payload["type"] = "access"
-        payload["sub"] = str(data.get("user_id"))
         return jwt.encode(
             payload,
             SECRET_KEY,
@@ -36,7 +35,6 @@ def create_refresh_token(data: dict):
         datetime.utcnow()
         + timedelta(days=REFRESH_TOKEN_EXPIRE_IN_DAYS)
     )
-    payload["sub"] = str(data.get("user_id"))
     payload["type"] = "refresh"
     payload["exp"] = expiry
 
