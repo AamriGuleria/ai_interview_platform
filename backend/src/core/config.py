@@ -25,5 +25,9 @@ class Config(BaseSettings):
     pool_use_lifo: bool = True
     jwt_secret_key: str = "default"
     algorithm: str = "HS256"
-
+    minio_endpoint: str = "localhost:9000"
+    minio_access_key: str = "minioadmin"
+    minio_secret_key: str = "minioadmin"
+    secure: str = False
+    bucket_name: str = "resume"
 config = Config()
