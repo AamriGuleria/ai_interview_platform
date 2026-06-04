@@ -37,6 +37,7 @@ def create_refresh_token(data: dict):
         + timedelta(days=REFRESH_TOKEN_EXPIRE_IN_DAYS)
     )
     payload["sub"] = str(data.get("user_id"))
+    payload["type"] = "refresh"
     payload["exp"] = expiry
 
     return (
@@ -46,4 +47,11 @@ def create_refresh_token(data: dict):
             algorithm=ALGORITHM
         ),
         expiry
+    )
+
+def decode_token(token: str):
+    return jwt.decode(
+        token,
+        SECRET_KEY,
+        algorithms=[ALGORITHM]
     )

@@ -8,6 +8,7 @@ from database.session_manager import get_async_db
 import logging
 from models import Users
 from utils import jwt
+from utils.jwt import decode_token
 
 security = HTTPBearer()
 logger = logging.getLogger(__name__)
@@ -18,11 +19,7 @@ async def get_current_user(
 ):
     try:
         token = credentials.credentials
-        payload = jwt.decode(
-            token,
-            config.jwt_secret_key,
-            algorithms=[config.algorithm]
-        )
+        payload = decode_token(token)
         user_id = int(payload["sub"])
         result = await db.execute(
             select(Users).where(
@@ -46,8 +43,5 @@ async def get_current_user(
         )
 
 def decode_token(token: str):
-    return jwt.decode(
-        token,
-        config.jwt_secret_key,
-        algorithms=[config.algorithm]
-    )
+    from utils.jwt import decode_token as _decode
+    return _decode(token)

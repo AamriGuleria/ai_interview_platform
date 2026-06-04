@@ -72,21 +72,21 @@ class AuthService:
             # Access Token and Refresh Token generation
             access_token = create_access_token(
                 {
-                    "sub": str(user.id),
-                    "email": user.email,
-                    "role": user.role.value
+                    "sub": str(registered_user.id),
+                    "email": registered_user.email,
+                    "role": registered_user.role.value
                 }
             )
             refresh_token, exp = create_refresh_token(
                 {
-                    "sub": str(user.id)
+                    "sub": str(registered_user.id)
                 }
             )
             refresh_hash = hash_password(
                 refresh_token
             )
             session = AppSession(
-                user_id=user.id,
+                user_id=registered_user.id,
                 ip_address=user.ip_address,
                 device=user.device,
                 refresh_token_hash=refresh_hash,
@@ -149,6 +149,11 @@ class AuthService:
                 ):
                     valid_session = session
                     break
+            if not valid_session:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Session not found"
+                )
             if valid_session.expires_at < datetime.utcnow():
                 raise HTTPException(
                     status_code=401,
