@@ -16,6 +16,9 @@ class Question(Base):
     difficulty = Column(String(50))
 
     expected_answer = Column(Text)
+    skills = Column(ARRAY(String))
+
+    question_type = Column(String) # Technical , project , behaviouroul etc
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
