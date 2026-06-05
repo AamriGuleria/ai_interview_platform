@@ -10,15 +10,13 @@ class UserRole(str, Enum):
 class RegiserUser(BaseModel):
     email: str
     password: str
-    role: Optional[UserRole]
-    phone_number: Optional[str]
-    # resume_url: Optional[str]
-    skills: Optional[List[str]]
-    experience: Optional[float]
+    role: Optional[UserRole] = None
+    phone_number: Optional[str] = None
+    skills: Optional[List[str]] = None
+    experience: Optional[float] = None
 class LoginUser(BaseModel):
     email: str
     password: str
-    role: Optional[UserRole]
     ip_address: str
     device: str
       

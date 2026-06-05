@@ -2,6 +2,7 @@ import logging
 from sqlalchemy import select
 from models.Interview import Interview
 from services.minio_client import MinioClient
+from services.llm_service import GeminiService
 from core.config import config
 from database.session_manager import db_manager
 import tempfile
@@ -19,16 +20,10 @@ def clean_text(text: str) -> str:
     text = text.replace("\r", "\n")
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
-    text = re.sub(
-        r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]",
-        "",
-        text
-    )
-    # text = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)
+    text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", text)
     return text.strip()
 
-def extract_text(file_path: str):
-    text = ""
+def extract_text(file_path: str) -> str:
     pdf = fitz.open(file_path)
     pages = [page.get_text() for page in pdf]
     pdf.close()
@@ -43,19 +38,51 @@ def extract_resume_context(interview_id: int):
             ).scalars().one_or_none()
             if not interview:
                 raise Exception("Interview not found")
-            resume_url = interview.resume_url
+
+            # Step 1: Download and extract resume text
             file = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
             file_name = file.name
             file.close()
             minio_service = MinioClient()
-            minio_service.download_file(
-                config.bucket_name,
-                resume_url,
-                file_name
-            )
-            text = extract_text(file_name)
-            cleaned_text = clean_text(text)
+            minio_service.download_file(config.bucket_name, interview.resume_url, file_name)
+            cleaned_text = clean_text(extract_text(file_name))
             interview.resume_text = cleaned_text
+            logger.info(f"Resume text extracted for interview {interview_id}")
+
+            # Step 2: Call LLM
+            prompt = f"""
+            You are an expert technical recruiter.
+            Analyze the following candidate.
+            Target Role: {interview.target_role}
+            Experience: {interview.experience}
+            Declared Skills: {interview.skills}
+            Resume: {cleaned_text}
+            Instructions:
+            1. Extract technical skills.
+            2. Identify projects.
+            3. Identify strongest areas.
+            4. Suggest interview topics.
+            5. Decide interview difficulty.
+            6. Create a recruiter-style summary.
+            Return only structured data.
+            """
+            gemini_service = GeminiService()
+            response = gemini_service.generate_resume_context(prompt)
+            logger.info(f"LLM context generated for interview {interview_id}")
+
+            interview.interview_context = {
+                "candidate_name": response.candidate_name,
+                "years_of_experience": response.years_of_experience,
+                "skills": response.skills,
+                "projects": [p.model_dump() for p in response.projects],
+                "work_experience": [w.model_dump() for w in response.work_experience],
+                "education": response.education,
+                "strength_areas": response.strength_areas,
+                "recommended_topics": response.recommended_topics,
+                "difficulty_level": response.difficulty_level
+            }
+            interview.resume_summary = response.resume_summary
+            interview.status = "ready"
             db.add(interview)
     except Exception as e:
         logger.error(f"Failed to extract resume context due to: {e}")

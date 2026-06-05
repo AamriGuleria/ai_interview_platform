@@ -15,6 +15,7 @@ class Config(BaseSettings):
     @property
     def ASYNC_DATABASE_URL(self) -> str:
         return self.async_database_url
+    
     database_url: str = "postgresql://user:password@localhost:5432/db_name"
     async_database_url: str = "postgresql+asyncpg://user:password@localhost:5432/db_name"
     echo: bool = False
@@ -30,4 +31,6 @@ class Config(BaseSettings):
     minio_secret_key: str = "minioadmin"
     secure: bool = False
     bucket_name: str = "resume"
+    gemini_api_key: str = "hello"
+    
 config = Config()
