@@ -45,7 +45,6 @@ class AuthService:
                 role=user_data.role
                     or UserRole.CANDIDATE,
                 phone_number=user_data.phone_number or None,
-                resume_url=user_data.resume_url or None,
                 skills=user_data.skills or None,
                 experience=user_data.experience or None
             )

@@ -67,8 +67,6 @@ class SessionManager():
             self.sync_engine = create_engine(
                 self.database_url,
                 echo=self.echo,
-                autocommit=False,
-                autoflush=False,
                 **self.pool_config,
             )
             logger.info("Sync engine initialized successfully")

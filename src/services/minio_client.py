@@ -31,6 +31,21 @@ class MinioClient():
             length=-1,
             part_size=10*1024*1024
         )
-
+    def get_file(self, bucket_name: str, object_name: str):
+        response = self.client.get_object(bucket_name, object_name)
+        return response.read(10*1024*1024)
+    
     def get_file_url(self, bucket_name: str, object_name: str) -> str:
         return self.client.presigned_get_object(bucket_name, object_name)
+    
+    def download_file(
+        self,
+        bucket_name: str,
+        object_name: str,
+        local_path: str
+    ):
+        self.client.fget_object(
+            bucket_name,
+            object_name,
+            local_path
+        )

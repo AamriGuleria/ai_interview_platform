@@ -9,7 +9,8 @@ from core.config import config
 from services.minio_client import MinioClient
 from schemas.user_schema import UpdateProfile
 from models.Users import Users
-from fastapi import File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, File, Form, HTTPException, UploadFile
+from background_tasks.resume_text_extraction import extract_resume_context
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +26,8 @@ class InterviewService:
         target_role: str,
         resume: UploadFile,
         current_user: Users,
-        app_session_id: str,
-        db: AsyncSession
+        app_session_id: int,
+        background_tasks: BackgroundTasks
     ):
         try:
             # Upload the file to minio
@@ -57,6 +58,12 @@ class InterviewService:
             )
             self.db.add(interview)
             await self.db.flush()
+            await self.db.commit()
+            await self.db.refresh(interview)
+            background_tasks.add_task(
+                extract_resume_context,
+                interview.id
+            )
             return interview
         except Exception as e:
             logger.error(

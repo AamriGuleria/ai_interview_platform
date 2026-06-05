@@ -12,7 +12,7 @@ class RegiserUser(BaseModel):
     password: str
     role: Optional[UserRole]
     phone_number: Optional[str]
-    resume_url: Optional[str]
+    # resume_url: Optional[str]
     skills: Optional[List[str]]
     experience: Optional[float]
 class LoginUser(BaseModel):
