@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
-from sqlalchemy import ARRAY, Column, DateTime, ForeignKey, Integer, String, Text, JSONB
+from sqlalchemy import ARRAY, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from models.Base import Base
 
 
@@ -49,6 +50,7 @@ class Interview(Base):
     interview_context = Column(JSONB, nullable = True)
     resume_text = Column(Text, nullable=True)
     resume_summary = Column(Text, nullable=True)
+    ai_evaluation = Column(JSONB,nullable=True)
 
 class InterviewQuestion(Base):
     __tablename__ = "interview_questions"

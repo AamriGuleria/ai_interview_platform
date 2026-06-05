@@ -14,9 +14,10 @@ async def fetch_interview_context(
     experience: int = Form(...),
     target_role: str = Form(...),
     resume: UploadFile = File(...),
+    app_session_id: str = None,
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db)
 ):
     service = InterviewService(db)
-    result = service.register_interview(skills, experience, target_role, resume, current_user, db)
+    result = service.register_interview(skills, experience, target_role, resume, current_user, app_session_id, db)
     return result

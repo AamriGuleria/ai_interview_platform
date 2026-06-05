@@ -4,6 +4,7 @@ from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
+from models.Interview import Interview
 from core.config import config
 from services.minio_client import MinioClient
 from schemas.user_schema import UpdateProfile
@@ -24,6 +25,7 @@ class InterviewService:
         target_role: str,
         resume: UploadFile,
         current_user: Users,
+        app_session_id: str,
         db: AsyncSession
     ):
         try:
@@ -42,7 +44,20 @@ class InterviewService:
             )
             # Generate interview context using LLM
             # Make entry for the Interview model
-            pass
+
+            interview = Interview(
+                user_id=current_user.id,
+                target_role=target_role,
+                app_session_id=app_session_id,
+                experience=experience,
+                skills=skills,
+                resume_url=file_location,
+                started_at=now,
+                status="pending"
+            )
+            self.db.add(interview)
+            await self.db.flush()
+            return interview
         except Exception as e:
             logger.error(
                 f"Failed to register interview due to:  {e}"
