@@ -31,3 +31,9 @@ class ResumeContext(BaseModel):
 
     difficulty_level: str
     resume_summary: str
+
+class QuestionMetadata(BaseModel):
+    category: str
+    difficulty: str
+    skills: List[str]
+    question_type: str

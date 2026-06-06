@@ -19,7 +19,7 @@ class Question(Base):
     skills = Column(ARRAY(String))
 
     question_type = Column(String) # Technical , project , behaviouroul etc
-
+    source = Column(String(100))
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Interview(Base):
