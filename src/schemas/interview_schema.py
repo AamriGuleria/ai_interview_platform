@@ -37,3 +37,14 @@ class QuestionMetadata(BaseModel):
     difficulty: str
     skills: List[str]
     question_type: str
+
+class QuestionMetadataItem(BaseModel):
+    id: int
+    category: str
+    difficulty: str
+    skills: List[str]
+    question_type: str
+
+
+class QuestionMetadataBatch(BaseModel):
+    questions: List[QuestionMetadataItem]

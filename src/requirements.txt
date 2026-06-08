@@ -12,3 +12,4 @@ python-jose[cryptography]
 minio
 pymupdf
 google-genai
+pandas
