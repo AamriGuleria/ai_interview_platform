@@ -51,20 +51,53 @@ def extract_resume_context(interview_id: int):
 
             # Step 2: Call LLM
             prompt = f"""
-            You are an expert technical recruiter.
-            Analyze the following candidate.
+            You are an expert technical recruiter. Analyze the candidate and return ONLY valid JSON.
+            
             Target Role: {interview.target_role}
             Experience: {interview.experience}
             Declared Skills: {interview.skills}
             Resume: {cleaned_text}
-            Instructions:
-            1. Extract technical skills.
-            2. Identify projects.
-            3. Identify strongest areas.
-            4. Suggest interview topics.
-            5. Decide interview difficulty.
-            6. Create a recruiter-style summary.
-            Return only structured data.
+            
+            Return JSON in this exact format:
+            {{
+                "candidate_name": "John Doe",
+                "years_of_experience": 5,
+                "skills": ["Python", "FastAPI", "PostgreSQL"],
+                "projects": [
+                    {{
+                        "name": "Project Name",
+                        "description": "Project description",
+                        "technologies": ["Python", "FastAPI"]
+                    }}
+                ],
+                "work_experience": [
+                    {{
+                        "company": "Company Name",
+                        "role": "Software Engineer",
+                        "duration": "2 years",
+                        "responsibilities": ["Developed APIs", "Optimized queries"]
+                    }}
+                ],
+                "education": ["Bachelor's in Computer Science"],
+                "strength_areas": ["Backend Development", "Database Optimization"],
+                "recommended_topics": ["System Design", "API Architecture"],
+                "difficulty_level": "Medium",
+                "resume_summary": "Candidate summary for recruiter"
+            }}
+            
+            Rules:
+            - Extract candidate name from resume
+            - Calculate years of experience from work history
+            - List all technical skills found
+            - Extract 2-3 key projects with descriptions
+            - Include work experience with responsibilities
+            - Add education information
+            - Identify 3-4 strength areas
+            - Suggest 5-6 interview topics
+            - Set difficulty: Beginner/Medium/Advanced
+            - Write recruiter summary (2-3 sentences)
+            
+            Return JSON only.
             """
             gemini_service = GeminiService()
             response = gemini_service.generate_resume_context(prompt)

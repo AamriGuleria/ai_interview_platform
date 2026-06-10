@@ -90,7 +90,7 @@ class AuthService:
             )
             session = AppSession(
                 user_id=registered_user.id,
-                ip_address=user.ip_addresse,
+                ip_address=user.ip_address,
                 device=user.device,
                 refresh_token_hash=refresh_hash,
                 expires_at=exp

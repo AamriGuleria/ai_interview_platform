@@ -13,3 +13,4 @@ minio
 pymupdf
 google-genai
 pandas
+ollama
