@@ -7,8 +7,8 @@ import time
 
 logger = getLogger(__name__)
 
-BATCH_SIZE = 400
-
+BATCH_SIZE = 20
+  
 class QuestionEnrichmentService():
     def __init__(self, db: Session):
         self.db = db
@@ -69,8 +69,8 @@ class QuestionEnrichmentService():
                 q.difficulty = item.difficulty
                 q.skills = item.skills
                 q.question_type = item.question_type
-                self.db.commit()
 
+            self.db.commit()
             logger.info(f"Batch {batch_num} committed")
 
         logger.info(f"Enrichment complete for {total} questions")

@@ -14,3 +14,7 @@ pymupdf
 google-genai
 pandas
 ollama
+requests
+beautifulsoup4
+pandas
+lxml

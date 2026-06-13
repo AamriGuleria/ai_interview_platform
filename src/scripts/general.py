@@ -30,7 +30,7 @@ def clean_markdown(text: str) -> str:
     return text.strip()
 
 
-def store_questions_in_bank(questions: list):
+def store_questions_in_bank(questions: list, enrichement: bool = True):
     try:
         db_question_entries = []
         for question in questions:
@@ -56,8 +56,9 @@ def store_questions_in_bank(questions: list):
                 f"Successfully stored "
                 f"{len(db_question_entries)} questions"
             )
-            enrichment_service = QuestionEnrichmentService(session)
-            enrichment_service.enrich_question_bank()
+            if enrichement:
+                enrichment_service = QuestionEnrichmentService(session)
+                enrichment_service.enrich_question_bank()
     except Exception as e:
         logger.error(
             f"Failed to store questions in bank: {e}"
