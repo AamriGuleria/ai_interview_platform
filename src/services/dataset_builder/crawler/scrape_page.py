@@ -1,4 +1,7 @@
 import requests
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 def fetch_page(url: str) -> str:
 
@@ -14,5 +17,5 @@ def fetch_page(url: str) -> str:
     )
 
     response.raise_for_status()
-
+    logger.info(f"The content that we get {url} is {response.text[:100]}")
     return response.text

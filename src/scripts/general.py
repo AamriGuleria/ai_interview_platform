@@ -42,9 +42,9 @@ def store_questions_in_bank(questions: list, enrichement: bool = True):
                 question_text=clean_markdown(question["question_text"]),
                 expected_answer=clean_markdown(question["expected_answer"]),
                 source=question["source"],
-                category="general",
-                difficulty="unknown",
-                question_type="technical",
+                category=question.get("category", "general"),
+                difficulty=question.get("difficulty", "unknown"),
+                question_type=question.get("question_type", "technical"),
                 skills=[]
             )
             db_question_entries.append(question_entry)
