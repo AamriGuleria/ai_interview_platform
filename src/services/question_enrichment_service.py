@@ -7,7 +7,7 @@ import time
 
 logger = getLogger(__name__)
 
-BATCH_SIZE = 20
+BATCH_SIZE = 10
   
 class QuestionEnrichmentService():
     def __init__(self, db: Session):
