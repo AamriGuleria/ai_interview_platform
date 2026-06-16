@@ -23,3 +23,36 @@ def clean_question(question: str) -> str:
         )
 
     return question.strip()
+
+def clean_answer(answer: str) -> str:
+    if not answer:
+        return ""
+
+    answer = answer.strip()
+
+    # Remove common prefixes
+    answer = re.sub(
+        r"^(Answer\s*:\s*)",
+        "",
+        answer,
+        flags=re.IGNORECASE
+    )
+
+    answer = re.sub(
+        r"^(Explanation\s*:\s*)",
+        "",
+        answer,
+        flags=re.IGNORECASE
+    )
+
+    answer = re.sub(
+        r"^(Ans\s*:\s*)",
+        "",
+        answer,
+        flags=re.IGNORECASE
+    )
+
+    # Remove excessive spaces
+    answer = re.sub(r"\s+", " ", answer)
+
+    return answer.strip()

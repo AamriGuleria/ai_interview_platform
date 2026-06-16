@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from models.Interview import Question
 import re
 from services.dataset_builder.constants import CATEGORY_MAPPING 
-from services.dataset_builder.cleaner.cleaner import clean_question
+from services.dataset_builder.cleaner.cleaner import clean_answer, clean_question
 
 def parse_gfg(
     html: str,
@@ -57,6 +57,7 @@ def parse_gfg(
             answer_parts
         )
         text = clean_question(text)
+        answer = clean_answer(answer)
         results.append(
             {
                 "question_text": text,
