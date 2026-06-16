@@ -1,16 +1,8 @@
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import uvicorn
 from apis import api_router
-from services.scheduler import scheduler
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    scheduler.start()
-    yield
-    scheduler.shutdown()
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 @app.get("/")
 async def read_root():

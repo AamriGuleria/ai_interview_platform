@@ -1,8 +1,9 @@
 from datetime import datetime
 from pydantic import BaseModel
-from sqlalchemy import ARRAY, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import ARRAY, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from models.Base import Base
+from pgvector.sqlalchemy import Vector
 
 
 class Question(Base):
@@ -17,7 +18,9 @@ class Question(Base):
 
     expected_answer = Column(Text)
     skills = Column(ARRAY(String))
-
+    embedding = Column(
+        Vector(384)
+    )
     question_type = Column(String) # Technical , project , behaviouroul etc
     source = Column(String(100))
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -69,9 +72,12 @@ class InterviewQuestion(Base):
         Integer,
         ForeignKey("questions.id")
     )
-
-    order_no = Column(Integer)
-
+    original_question = Column(Text)
+    personalized_question = Column(Text)
+    expected_answer = Column(Text)
+    user_answer = Column(Text)
+    score = Column(Float)
+    feedback = Column(Text)
     assigned_at = Column(
         DateTime,
         default=datetime.utcnow

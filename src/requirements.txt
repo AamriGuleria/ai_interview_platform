@@ -19,3 +19,5 @@ beautifulsoup4
 pandas
 lxml
 apscheduler
+sentence-transformers
+pgvector

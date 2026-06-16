@@ -29,8 +29,6 @@ def clean_answer(answer: str) -> str:
         return ""
 
     answer = answer.strip()
-
-    # Remove common prefixes
     answer = re.sub(
         r"^(Answer\s*:\s*)",
         "",
