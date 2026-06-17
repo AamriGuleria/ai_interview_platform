@@ -13,9 +13,9 @@ model = SentenceTransformer(
     "all-MiniLM-L6-v2"
 )
 
-def create_question_embeddings(self, db: Session):
+def create_question_embeddings(db: Session):
     try:
-        result = self.db.execute(
+        result = db.execute(
             select(Question).where(
                 Question.embedding.is_(None)).execution_options(stream_results=True)
         )
@@ -28,6 +28,7 @@ def create_question_embeddings(self, db: Session):
             question_obj.embedding = embedding
             db.add(question_obj)
         db.commit()
+        logger.info("Question embeddings created successfully")
     except Exception as ex:
         logger.error(f"Error creating question embeddings: {ex}")
 
