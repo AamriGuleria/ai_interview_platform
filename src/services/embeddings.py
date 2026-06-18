@@ -43,36 +43,28 @@ def create_resume_embeddings(resume_context: text):
         logger.error(f"Error creating resume embedding: {ex}")
         return None
     
-def retrieve_question_by_resume(resume_summary: text, db: Session):
+def retrieve_questions_from_embedding(
+    db: Session,
+    resume_embedding,
+    limit=50
+):
     try:
-        resume_embedding = model.encode(
-            resume_summary,
-            show_progress_bar=False
-        ).tolist()
-        result = db.execute(
-            select(Question).where(
-                Question.embedding.is_not(None)
-            ).execution_options(stream_results=True)
+        return (
+            db.execute(
+                select(Question)
+                .where(
+                    Question.embedding.is_not(None)
+                )
+                .order_by(
+                    Question.embedding.cosine_distance(
+                        resume_embedding
+                    )
+                )
+                .limit(limit)
+            )
+            .scalars()
+            .all()
         )
-        questions_with_embeddings = [
-            question[0] for question in result
-        ]
-
-        if not questions_with_embeddings:
-            logger.warning("No questions with embeddings found.")
-            return []
-
-        questions_with_similarity = []
-        for question in questions_with_embeddings:
-            similarity = cosine_similarity(resume_embedding, question.embedding)
-            questions_with_similarity.append((question, similarity))
-
-        questions_with_similarity.sort(key=lambda x: x[1], reverse=True)
-
-        top_questions = [q[0] for q in questions_with_similarity[:50]]
-
-        return top_questions
-
-    except Exception as ex:
-        logger.error(f"Error retrieving questions by resume: {ex}")
+    except Exception as e:
+        logger.error(f"Error retrieving questions from embedding: {e}")
         return []
