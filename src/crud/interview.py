@@ -11,7 +11,7 @@ from models.Users import Users
 from fastapi import BackgroundTasks, HTTPException, UploadFile
 from background_tasks.resume_text_extraction import extract_resume_context
 from services.embeddings import retrieve_questions_from_embedding
-from src.services.llm_service import GeminiService
+from services.llm_service import GeminiService
 
 logger = logging.getLogger(__name__)
 
