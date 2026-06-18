@@ -4,13 +4,13 @@ from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
-from models.Interview import Interview
+from models.Interview import Interview, InterviewQuestion
 from core.config import config
 from services.minio_client import MinioClient
-from schemas.user_schema import UpdateProfile
 from models.Users import Users
-from fastapi import BackgroundTasks, File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, HTTPException, UploadFile
 from background_tasks.resume_text_extraction import extract_resume_context
+from services.embeddings import retrieve_questions_from_embedding
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,6 @@ class InterviewService:
         background_tasks: BackgroundTasks
     ):
         try:
-            # Upload the file to minio
             now = datetime.utcnow()
             file_location = (
                 f"resumes/{current_user.id}/"
@@ -43,9 +42,6 @@ class InterviewService:
                 file_location,
                 resume.file
             )
-            # Generate interview context using LLM
-            # Make entry for the Interview model
-
             interview = Interview(
                 user_id=current_user.id,
                 target_role=target_role,
@@ -66,7 +62,49 @@ class InterviewService:
             )
             return interview
         except Exception as e:
-            logger.error(
-                f"Failed to register interview due to:  {e}"
-            )
+            logger.error(f"Failed to register interview due to: {e}")
             raise
+
+    async def get_interview_questions(
+        self,
+        interview_id: int,
+        current_user: Users,
+        limit: int = 10
+    ):
+        from database.session_manager import db_manager
+        interview = (
+            await self.db.execute(
+                select(Interview).where(
+                    Interview.id == interview_id,
+                    Interview.user_id == current_user.id
+                )
+            )
+        ).scalars().one_or_none()
+
+        if not interview:
+            raise HTTPException(status_code=404, detail="Interview not found")
+        if interview.status != "ready":
+            raise HTTPException(status_code=400, detail=f"Interview is not ready yet. Current status: {interview.status}")
+        if interview.resume_embedding is None:
+            raise HTTPException(status_code=400, detail="Resume embedding not available")
+
+        with db_manager.sync_session_scope() as sync_db:
+            questions = retrieve_questions_from_embedding(
+                sync_db,
+                interview.resume_embedding,
+                limit=limit
+            )
+
+        return [
+            {
+                "id": q.id,
+                "question_text": q.question_text,
+                "expected_answer": q.expected_answer,
+                "category": q.category,
+                "difficulty": q.difficulty,
+                "skills": q.skills,
+                "question_type": q.question_type,
+                "source": q.source
+            }
+            for q in questions
+        ]
