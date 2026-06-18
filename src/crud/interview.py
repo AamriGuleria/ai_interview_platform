@@ -11,6 +11,7 @@ from models.Users import Users
 from fastapi import BackgroundTasks, HTTPException, UploadFile
 from background_tasks.resume_text_extraction import extract_resume_context
 from services.embeddings import retrieve_questions_from_embedding
+from src.services.llm_service import GeminiService
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,29 @@ class InterviewService:
                 interview.resume_embedding,
                 limit=limit
             )
+            result = [{
+                "id": q.id,
+                "question_text": q.question_text,
+                "expected_answer": q.expected_answer,
+                "category": q.category,
+                "difficulty": q.difficulty,
+                "skills": q.skills,
+                "question_type": q.question_type,
+                "source": q.source
+            }
+            for q in questions
+            ]
+            llm_service = GeminiService(sync_db)
+            personalized_questions = llm_service.get_personalized_questions(result, interview.interview_context)
+            # interview.status = "in_progress"
 
+            # Storing personalized questions in db for the interview session
+            # for pq in personalized_questions:
+            #     iq = InterviewQuestion(
+            #         interview_id=interview.id,
+            #         question_id=pq["id"]
+            #     )
+            #     sync_db.add(iq)
         return [
             {
                 "id": q.id,

@@ -84,3 +84,14 @@ class GeminiService:
         except Exception as e:
             logger.error(f"Error in enrich_questions_metadata: {e}")
             raise RuntimeError(f"Failed to enrich metadata: {e}")
+        
+    def get_personalized_questions(self, questions: list[dict], resume_context: json):
+        #  id
+        # question_text
+        # expected_answer
+        # category
+        # difficulty
+        # skills
+        # question_type
+        # source
+        pass

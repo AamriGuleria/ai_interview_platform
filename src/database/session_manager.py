@@ -49,6 +49,7 @@ class SessionManager():
             "pool_recycle": pool_recycle,
             "pool_pre_ping": pool_pre_ping,
             "pool_use_lifo": pool_use_lifo,
+            "application_name":"ai_interview_platform",
         }
 
         self.sync_engine: Optional[Engine] = None
