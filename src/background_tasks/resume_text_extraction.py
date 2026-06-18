@@ -1,6 +1,7 @@
 import logging
 from sqlalchemy import select
 from models.Interview import Interview
+from services.embeddings import create_resume_embeddings
 from services.minio_client import MinioClient
 from services.llm_service import GeminiService
 from core.config import config
@@ -31,6 +32,7 @@ def extract_text(file_path: str) -> str:
 
 def extract_resume_context(interview_id: int):
     file_name = None
+    response_summary = None
     try:
         with db_manager.sync_session_scope() as db:
             interview = db.execute(
@@ -115,6 +117,9 @@ def extract_resume_context(interview_id: int):
                 "difficulty_level": response.difficulty_level
             }
             interview.resume_summary = response.resume_summary
+            reponse_summary = response.resume_summary
+            resume_embedding = create_resume_embeddings(reponse_summary)
+            interview.resume_embedding = resume_embedding
             interview.status = "ready"
             db.add(interview)
     except Exception as e:

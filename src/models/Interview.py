@@ -51,7 +51,10 @@ class Interview(Base):
     started_at = Column(DateTime)
 
     completed_at = Column(DateTime)
-
+    resume_embedding = Column(
+        Vector(384),
+        nullable=True
+    )
     status = Column(String(50))
     interview_context = Column(JSONB, nullable = True)
     resume_text = Column(Text, nullable=True)
