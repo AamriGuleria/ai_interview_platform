@@ -44,3 +44,15 @@ async def get_next_interview_question(
 ):
     service = InterviewService(db)
     return await service.get_next_interview_question(interview_id, current_user)
+
+@router.post("/{interview_id}/submit-interview-answer")
+async def submit_answer(
+    interview_id: int,
+    answer: str,
+    interview_question_id: int,
+    background_tasks: BackgroundTasks,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    service = InterviewService(db)
+    return await service.submit_answer(interview_id, answer, current_user, interview_question_id, background_tasks)

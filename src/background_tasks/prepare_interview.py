@@ -23,7 +23,6 @@ def prepare_interview(interview_id: int):
             interview.status = "preparing"
             db.commit()
 
-            # Step 1: Retrieve questions via embedding similarity
             questions = retrieve_questions_from_embedding(
                 db,
                 interview.resume_embedding,
@@ -81,7 +80,6 @@ def prepare_interview(interview_id: int):
                     logger.error(f"Personalization batch {batch_num} failed: {e}")
                     db.rollback()
 
-            # Step 4: Mark as in_progress
             interview.status = "in_progress"
             db.commit()
             logger.info(f"Interview {interview_id} is ready to start")

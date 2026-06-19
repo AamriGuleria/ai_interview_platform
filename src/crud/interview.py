@@ -13,6 +13,7 @@ from background_tasks.resume_text_extraction import extract_resume_context
 from services.embeddings import retrieve_questions_from_embedding
 from services.llm_service import GeminiService
 from background_tasks.prepare_interview import prepare_interview
+from background_tasks.evaluate_answers import evaluate_answer
 
 logger = logging.getLogger(__name__)
 
@@ -73,24 +74,29 @@ class InterviewService:
         current_user: Users,
         background_tasks: BackgroundTasks
     ):
-        interview = (
-            await self.db.execute(
-                select(Interview).where(
-                    Interview.id == interview_id,
-                    Interview.user_id == current_user.id
+        try:
+            interview = (
+                await self.db.execute(
+                    select(Interview).where(
+                        Interview.id == interview_id,
+                        Interview.user_id == current_user.id
+                    )
                 )
-            )
-        ).scalars().one_or_none()
+            ).scalars().one_or_none()
 
-        if not interview:
-            raise HTTPException(status_code=404, detail="Interview not found")
-        if interview.status != "ready":
-            raise HTTPException(status_code=400, detail=f"Interview not ready. Current status: {interview.status}")
-        if interview.resume_embedding is None:
-            raise HTTPException(status_code=400, detail="Resume embedding not available")
+            if not interview:
+                raise HTTPException(status_code=404, detail="Interview not found")
+            if interview.status != "ready":
+                raise HTTPException(status_code=400, detail=f"Interview not ready. Current status: {interview.status}")
+            if interview.resume_embedding is None:
+                raise HTTPException(status_code=400, detail="Resume embedding not available")
 
-        background_tasks.add_task(prepare_interview, interview_id)
-        return {"message": "Interview preparation started", "status": "preparing"}
+            background_tasks.add_task(prepare_interview, interview_id)
+            return {"message": "Interview preparation started", "status": "preparing"}
+        
+        except Exception as e:
+            logger.error(f"Error fetching interview questions: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
     
 
     async def get_next_interview_question(
@@ -144,3 +150,36 @@ class InterviewService:
                 "assigned_at":
                     interview_question.assigned_at
             }
+
+    async def submit_answer(
+        self,
+        interview_id: int,
+        answer: str,
+        current_user: Users,
+        interview_question_id: int,
+        background_tasks: BackgroundTasks
+    ):
+        try:
+            interview_question = self.db.execute(
+                select(InterviewQuestion).where(
+                    InterviewQuestion.id == interview_question_id,
+                    InterviewQuestion.interview_id == interview_id
+                )
+            )
+            interview_question = interview_question.scalars().one_or_none()
+            if not interview_question:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Interview question not found"
+                )
+            
+            interview_question.user_answer = answer
+            self.db.add(interview_question)
+            await self.db.commit()
+            await self.db.refresh(interview_question)
+            background_tasks.add_task(evaluate_answer, interview_question_id)
+            return {"message": "Answer submitted successfully",
+                "interview_question_id": interview_question.id}
+        except Exception as e:
+            logger.error(f"Error submitting answer: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
