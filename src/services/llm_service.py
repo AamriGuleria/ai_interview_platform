@@ -1,5 +1,5 @@
 from google import genai
-from schemas.interview_schema import QuestionMetadataBatch, ResumeContext, QuestionMetadata
+from schemas.interview_schema import PersonalizedQuestionBatch, QuestionMetadataBatch, ResumeContext, QuestionMetadata
 from core.config import config
 from ollama import chat
 import json
@@ -85,13 +85,68 @@ class GeminiService:
             logger.error(f"Error in enrich_questions_metadata: {e}")
             raise RuntimeError(f"Failed to enrich metadata: {e}")
         
-    def get_personalized_questions(self, questions: list[dict], resume_context: json):
-        #  id
-        # question_text
-        # expected_answer
-        # category
-        # difficulty
-        # skills
-        # question_type
-        # source
-        pass
+    def get_personalized_questions(
+        self,
+        questions: list[dict],
+        resume_context: dict
+    ):
+        question_block = "\n\n".join(
+            f"ID: {q['id']}\nQuestion: {q['question_text']}\nExpected Answer: {q['expected_answer']}"
+            for q in questions
+        )
+        prompt = f"""
+        You are an experienced technical interviewer.
+
+        Candidate Context:
+
+        {json.dumps(resume_context, indent=2)}
+
+        Questions:
+
+        {question_block}
+
+        Task:
+
+        Rewrite each question to make it specific
+        to the candidate's experience.
+
+        Rules:
+
+        1. Preserve the original intent.
+        2. Reference candidate projects when relevant.
+        3. Reference candidate technologies when relevant.
+        4. Keep question difficulty unchanged.
+        5. Return one personalized question for each id.
+        6. Do not invent fake experience.
+        7. Return JSON only.
+
+        Example:
+
+        Original:
+        What is RabbitMQ?
+
+        Personalized:
+        In your notification platform,
+        why would RabbitMQ be preferred
+        over direct synchronous communication?
+
+        Return:
+
+        {{
+        "questions": [
+            {{
+            "id": 1,
+            "personalized_question": "..."
+            }}
+        ]
+        }}
+        """
+        response = self.client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": PersonalizedQuestionBatch
+            }
+        )
+        return response.parsed

@@ -48,3 +48,12 @@ class QuestionMetadataItem(BaseModel):
 
 class QuestionMetadataBatch(BaseModel):
     questions: List[QuestionMetadataItem]
+
+
+class PersonalizedQuestion(BaseModel):
+    id: int
+    personalized_question: str
+    personalized_expected_answer: str
+
+class PersonalizedQuestionBatch(BaseModel):
+    questions: list[PersonalizedQuestion]
