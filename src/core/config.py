@@ -1,4 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+# python -m services.dataset_builder.exporter.csv_exporter
+# python -m scripts.create_embeddings
 
 class Config(BaseSettings):
     model_config = SettingsConfigDict(

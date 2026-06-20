@@ -57,3 +57,12 @@ class PersonalizedQuestion(BaseModel):
 
 class PersonalizedQuestionBatch(BaseModel):
     questions: list[PersonalizedQuestion]
+
+class EvaluationResult(BaseModel):
+    score: float
+    feedback: str
+    strengths: List[str]
+    gaps: List[str]
+
+class EvaluationResultBatch(BaseModel):
+    results: List[EvaluationResult]

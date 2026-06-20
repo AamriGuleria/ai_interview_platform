@@ -160,7 +160,7 @@ class InterviewService:
         background_tasks: BackgroundTasks
     ):
         try:
-            interview_question = self.db.execute(
+            interview_question = await self.db.execute(
                 select(InterviewQuestion).where(
                     InterviewQuestion.id == interview_question_id,
                     InterviewQuestion.interview_id == interview_id

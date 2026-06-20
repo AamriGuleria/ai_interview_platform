@@ -49,7 +49,6 @@ class SessionManager():
             "pool_recycle": pool_recycle,
             "pool_pre_ping": pool_pre_ping,
             "pool_use_lifo": pool_use_lifo,
-            "application_name":"ai_interview_platform",
         }
 
         self.sync_engine: Optional[Engine] = None
@@ -68,6 +67,7 @@ class SessionManager():
             self.sync_engine = create_engine(
                 self.database_url,
                 echo=self.echo,
+                connect_args={"application_name": "ai_interview_platform"},
                 **self.pool_config,
             )
             logger.info("Sync engine initialized successfully")

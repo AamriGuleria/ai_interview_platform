@@ -4,6 +4,7 @@ from sqlalchemy import ARRAY, Column, DateTime, Float, ForeignKey, Integer, Stri
 from sqlalchemy.dialects.postgresql import JSONB
 from models.Base import Base
 from pgvector.sqlalchemy import Vector
+from sqlalchemy.orm import relationship
 
 
 class Question(Base):
@@ -60,6 +61,7 @@ class Interview(Base):
     resume_text = Column(Text, nullable=True)
     resume_summary = Column(Text, nullable=True)
     ai_evaluation = Column(JSONB,nullable=True)
+    questions = relationship("InterviewQuestion", back_populates="interview")
 
 class InterviewQuestion(Base):
     __tablename__ = "interview_questions"
@@ -87,6 +89,9 @@ class InterviewQuestion(Base):
         DateTime,
         default=datetime.utcnow
     )
+    strengths = Column(ARRAY(String))
+    gaps = Column(ARRAY(String))
+    interview = relationship("Interview", back_populates="questions")
 
 class Answer(Base):
     __tablename__ = "answers"

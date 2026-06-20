@@ -29,7 +29,7 @@ def prepare_interview(interview_id: int):
                 limit=30
             )
             logger.info(f"Retrieved {len(questions)} questions for interview {interview_id}")
-
+            questions_count = len(questions)
             # Step 2: Save all as InterviewQuestion records
             for question in questions:
                 iq = InterviewQuestion(
@@ -53,7 +53,7 @@ def prepare_interview(interview_id: int):
             gemini_service = GeminiService()
             resume_context = interview.interview_context or {}
 
-            for i in range(0, len(saved_iqs), PERSONALIZATION_BATCH_SIZE):
+            for i in range(0, len(saved_iqs)//2, PERSONALIZATION_BATCH_SIZE):
                 batch = saved_iqs[i: i + PERSONALIZATION_BATCH_SIZE]
                 batch_num = i // PERSONALIZATION_BATCH_SIZE + 1
                 batch_payload = [
