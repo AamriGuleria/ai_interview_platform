@@ -78,7 +78,7 @@ def prepare_interview(interview_id: int):
                     resume_context
                 ):
                     questions_to_personalize.append(question)
-                    
+
                 iq = InterviewQuestion(
                     interview_id=interview_id,
                     original_question=question.question_text,
@@ -130,7 +130,7 @@ def prepare_interview(interview_id: int):
                     logger.error(f"Personalization batch {batch_num} failed: {e}")
                     db.rollback()
 
-            interview.status = "in_progress"
+            interview.status = "ready"
             db.commit()
             logger.info(f"Interview {interview_id} is ready to start")
 
