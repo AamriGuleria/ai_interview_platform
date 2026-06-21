@@ -22,7 +22,9 @@ def evaluate_answer(interview_question_id: int):
 
             interview = interview_question.interview
             resume_context = interview.interview_context or {}
+            is_personalized = True if interview_question.personalized_question else False
             question = interview_question.personalized_question or interview_question.original_question
+            original_expected_answer = interview_question.original_expected_answer
             user_answer = interview_question.user_answer
 
             if not user_answer:
@@ -34,7 +36,9 @@ def evaluate_answer(interview_question_id: int):
                 interview_question_id=interview_question_id,
                 interview_context=resume_context,
                 question=question,
-                user_answer=user_answer
+                user_answer=user_answer,
+                is_personalized = is_personalized,
+                expected_answer=original_expected_answer
             )
 
             interview_question.score = result.score

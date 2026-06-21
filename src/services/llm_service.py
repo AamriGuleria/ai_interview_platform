@@ -1,6 +1,7 @@
 from google import genai
 from schemas.interview_schema import EvaluationResult, PersonalizedQuestionBatch, QuestionMetadataBatch, ResumeContext, QuestionMetadata
 from core.config import config
+from core.constants import KNOWLEDGE_EVALUATION_PROMPT, METADATA_ENRICHMENT_PROMPT, PERSONALIZATION_PROMPT, EVALUATION_PROMPT
 from ollama import chat
 import json
 import re
@@ -114,26 +115,7 @@ class GeminiService:
                 f"ID: {q['id']}\nQuestion: {q['question_text']}\nExpected Answer: {q['expected_answer']}"
                 for q in questions
             )
-            prompt = f"""You are an interview metadata classifier.
-            Return ONLY valid JSON, no explanation.
-
-            Questions:
-            {questions_text}
-
-            Output format:
-            {{
-                "questions": [
-                    {{
-                        "id": <same id as input>,
-                        "category": "<topic>",
-                        "difficulty": "<Beginner|Intermediate|Advanced>",
-                        "skills": ["skill1"],
-                        "question_type": "<Technical|Behavioral|Project|System Design|Scenario Based>"
-                    }}
-                ]
-            }}
-
-            Return JSON only."""
+            prompt = METADATA_ENRICHMENT_PROMPT.format(questions_text=questions_text)
 
             response = chat(
                 model=self.OLLAMA_MODEL,
@@ -164,30 +146,10 @@ class GeminiService:
                 f"ID: {q['id']}\nQuestion: {q['question_text']}\nExpected Answer: {q['expected_answer']}"
                 for q in questions
             )
-            prompt = f"""You are an experienced technical interviewer.
-Candidate Context:
-{json.dumps(resume_context, indent=2)}
-
-Questions:
-{question_block}
-
-Rewrite each question to be specific to the candidate's experience.
-Rules:
-1. Preserve the original intent and difficulty.
-2. Reference candidate projects/technologies when relevant.
-3. Do not invent fake experience.
-4. Return one personalized question per id.
-
-Return ONLY valid JSON:
-{{
-    "questions": [
-        {{
-            "id": <same id>,
-            "personalized_question": "...",
-            "personalized_expected_answer": "..."
-        }}
-    ]
-}}"""
+            prompt = PERSONALIZATION_PROMPT.format(
+                resume_context=json.dumps(resume_context, indent=2),
+                question_block=question_block
+            )
             response = chat(
                 model=self.OLLAMA_MODEL,
                 messages=[{"role": "user", "content": prompt}]
@@ -211,7 +173,9 @@ Return ONLY valid JSON:
         interview_question_id: int,
         interview_context: dict,
         question: str,
-        user_answer: str
+        user_answer: str,
+        is_personalized: bool,
+        expected_answer: str,
     ):
         # interview_question_id: int
         # user_answer: str
@@ -219,67 +183,18 @@ Return ONLY valid JSON:
         # score: float
         # feedback: str
         try:
-            prompt = f"""
-            You are an expert technical interviewer evaluating candidate responses.
-            Candidate Context:
-            {json.dumps(interview_context, indent=2)}
-
-            Question Asked:
-            {question}
-
-            Candidate's Answer:
-            {user_answer}
-
-            Evaluation Task:
-
-            Score the answer from 0-100 based on:
-
-            1. **Correctness** (40%): How accurate and complete is the answer?
-            - 90-100: Completely correct, all key points covered
-            - 70-89: Mostly correct, minor gaps
-            - 50-69: Partially correct, some misunderstandings
-            - 30-49: Limited correctness, significant gaps
-            - 0-29: Mostly incorrect or irrelevant
-
-            2. **Relevance** (30%): How well does it address the question?
-            - Directly addresses the asked question
-            - Uses candidate's experience/projects when applicable
-            - Avoids tangential information
-
-            3. **Depth** (20%): Does it show understanding?
-            - Surface-level answers: Lower score
-            - Demonstrates reasoning and trade-offs: Higher score
-            - Shows awareness of context/constraints: Higher score
-
-            4. **Communication** (10%): Is it clear and well-structured?
-            - Clear explanation: Higher score
-            - Organized thoughts: Higher score
-            - Appropriate technical terminology: Higher score
-
-            Scoring Guide:
-            - 85-100: Excellent - Hire signal, strong technical knowledge
-            - 70-84: Good - Meets expectations, acceptable
-            - 50-69: Average - Some gaps, needs improvement
-            - 30-49: Poor - Significant gaps, concerning
-            - 0-29: Very Poor - Does not meet baseline
-
-            Context Awareness:
-            - Consider the candidate's experience level (from context)
-            - Adjust expectations based on their background
-            - Give credit for partially correct answers that show understanding
-            - Consider if they're applying concepts from their own experience
-
-            Return JSON only:
-
-            {{
-                "score": <float between 0-100>,
-                "feedback": "<constructive feedback addressing: what was good, what was missing, suggestions for improvement>",
-                "strengths": ["<key strength>"],
-                "gaps": ["<area of improvement>"]
-            }}
-
-            Be fair but honest. Score should reflect true understanding, not just effort.
-            """
+            if is_personalized:
+                prompt = EVALUATION_PROMPT.format(
+                    interview_context=json.dumps(interview_context, indent=2),
+                    question=question,
+                    user_answer=user_answer
+                )
+            else:
+                prompt = KNOWLEDGE_EVALUATION_PROMPT.format(
+                    question=question,
+                    expected_answer=expected_answer,
+                    user_answer=user_answer
+                )
             response = chat(
                 model=self.OLLAMA_MODEL,
                 messages=[{"role": "user", "content": prompt}]
