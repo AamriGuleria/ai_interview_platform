@@ -183,3 +183,56 @@ class InterviewService:
         except Exception as e:
             logger.error(f"Error submitting answer: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
+        
+
+    async def get_interview_result(
+        self,
+        interview_id: int,
+        current_user: Users 
+    ):
+        try:
+            # First we need to find that evaluation of all the interview questions has been completed , if not show the pop up
+            incomplete_interview_question = await self.db.execute(
+                select(InterviewQuestion)
+                .where(
+                    InterviewQuestion.interview_id == interview_id,
+                    InterviewQuestion.user_answer.isnot(None),
+                    InterviewQuestion.score.is_(None)
+                )
+            )
+            if incomplete_interview_question:
+                return {
+                    "message": "Evaluation of some answers is still in progress. Please check back later."
+                }
+            #View the results if completed
+            interview_questions = await self.db.execute(
+                select(InterviewQuestion)
+                .where(
+                    InterviewQuestion.interview_id == interview_id
+                )
+                .order_by(InterviewQuestion.id)
+            )
+            total_score = sum(iq.score for iq in interview_questions.scalars().all() if iq.score is not None)
+            avg_score = total_score / len(interview_questions) if interview_questions else 0
+            percentage = avg_score * 20
+            result = {
+                "questions": [
+                    {
+                        "interview_question_id": iq.id,
+                        "question_text": iq.personalized_question or iq.original_question,
+                        "user_answer": iq.user_answer,
+                        "score": iq.score,
+                        "feedback": iq.feedback,  # ← Added missing comma
+                        "strengths": iq.strengths,
+                        "gaps": iq.gaps,
+                        "assigned_at": iq.assigned_at
+                    }
+                    for iq in interview_questions
+                ],
+                "average_score": avg_score,
+                "percentage": percentage
+            }
+            return result
+        except Exception as e:
+            logger.error(f"Error fetching interview result: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")

@@ -56,3 +56,13 @@ async def submit_answer(
 ):
     service = InterviewService(db)
     return await service.submit_answer(interview_id, answer, current_user, interview_question_id, background_tasks)
+
+
+@router.get("/{interview_id}/result")
+async def get_interview_result(
+    interview_id: int,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    service = InterviewService(db)
+    return await service.get_interview_result(interview_id, current_user)
