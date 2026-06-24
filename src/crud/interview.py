@@ -4,7 +4,7 @@ from uuid import uuid4
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
-from models.Interview import Interview, InterviewQuestion
+from models.Interview import Interview, InterviewQuestion, InterviewStatus
 from core.config import config
 from services.minio_client import MinioClient
 from models.Users import Users
@@ -53,7 +53,7 @@ class InterviewService:
                 skills=skills,
                 resume_url=file_location,
                 started_at=now,
-                status="pending"
+                status=InterviewStatus.CREATED.value
             )
             self.db.add(interview)
             await self.db.flush()
@@ -61,6 +61,10 @@ class InterviewService:
             await self.db.refresh(interview)
             background_tasks.add_task(
                 extract_resume_context,
+                interview.id
+            )
+            background_tasks.add_task(
+                prepare_interview,
                 interview.id
             )
             return interview
@@ -86,13 +90,12 @@ class InterviewService:
 
             if not interview:
                 raise HTTPException(status_code=404, detail="Interview not found")
-            if interview.status != "ready":
+            if interview.status != InterviewStatus.QUESTIONS_READY.value:
                 raise HTTPException(status_code=400, detail=f"Interview not ready. Current status: {interview.status}")
             if interview.resume_embedding is None:
                 raise HTTPException(status_code=400, detail="Resume embedding not available")
 
-            background_tasks.add_task(prepare_interview, interview_id)
-            return {"message": "Interview preparation started", "status": "preparing"}
+            return {"message": "Interview questions are ready", "status": InterviewStatus.QUESTIONS_READY.value}
         
         except Exception as e:
             logger.error(f"Error fetching interview questions: {e}")
@@ -236,3 +239,33 @@ class InterviewService:
         except Exception as e:
             logger.error(f"Error fetching interview result: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def get_interview_prep_progress(
+        self,
+        interview_id: int,
+        current_user: Users
+    ):
+        try:
+            interview = (
+                await self.db.execute(
+                    select(Interview)
+                    .where(
+                        Interview.id == interview_id
+                    )
+                )
+            ).scalars().first()
+
+            if not interview:
+                raise HTTPException(
+                    status_code=404,
+                    detail="No interviews found for the user"
+                )
+
+            return {
+                "interview_id": interview.id,
+                "status": interview.status
+            }
+        except Exception as e:
+            logger.error(f"Error fetching interview preparation progress: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error"
+    )

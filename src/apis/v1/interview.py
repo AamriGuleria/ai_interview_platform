@@ -8,6 +8,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 router = APIRouter(prefix="/interview", tags=["Interview Management"])
 
 
+@router.get("/interview-status")
+async def get_interview_prep_progress(
+    interview_id: int,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    service = InterviewService(db)
+    return await service.get_interview_prep_progress(current_user, interview_id)
+
 @router.post("/interview_info")
 async def fetch_interview_context(
     skills: List[str] = Form(...),
@@ -24,15 +33,15 @@ async def fetch_interview_context(
     return result
 
 
-@router.get("/{interview_id}/questions")
-async def get_interview_questions(
-    interview_id: int,
-    background_tasks: BackgroundTasks,
-    current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_async_db)
-):
-    service = InterviewService(db)
-    return await service.get_interview_questions(interview_id, current_user, background_tasks)
+# @router.get("/{interview_id}/questions")
+# async def get_interview_questions(
+#     interview_id: int,
+#     background_tasks: BackgroundTasks,
+#     current_user=Depends(get_current_user),
+#     db: AsyncSession = Depends(get_async_db)
+# ):
+#     service = InterviewService(db)
+#     return await service.get_interview_questions(interview_id, current_user, background_tasks)
 
 
 @router.get("/{interview_id}/next-question")

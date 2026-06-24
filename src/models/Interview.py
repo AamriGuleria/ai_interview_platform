@@ -1,10 +1,22 @@
 from datetime import datetime
+from enum import Enum
 from pydantic import BaseModel
 from sqlalchemy import ARRAY, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from models.Base import Base
 from pgvector.sqlalchemy import Vector
 from sqlalchemy.orm import relationship
+
+
+class InterviewStatus(str, Enum):
+    CREATED = "created"
+    PREPARING_RESUME = "preparing_resume"
+    RESUME_READY = "resume_ready"
+    PREPARING_QUESTIONS = "preparing_questions"
+    QUESTIONS_READY = "questions_ready"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class Question(Base):

@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from models.Interview import Interview
+from models.Interview import Interview, InterviewStatus
 from services.llm_service import GeminiService
 from database.session_manager import db_manager
 
@@ -53,5 +53,5 @@ def generate_context(interview_id: int):
             "difficulty_level": response.difficulty_level
         }
         interview.resume_summary = response.resume_summary
-        interview.status = "ready"
+        interview.status = InterviewStatus.RESUME_READY.value
         db.add(interview)

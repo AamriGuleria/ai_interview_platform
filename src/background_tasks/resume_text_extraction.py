@@ -1,6 +1,6 @@
 import logging
 from sqlalchemy import select
-from models.Interview import Interview
+from models.Interview import Interview, InterviewStatus
 from services.embeddings import create_resume_embeddings
 from services.minio_client import MinioClient
 from services.llm_service import GeminiService
@@ -120,7 +120,7 @@ def extract_resume_context(interview_id: int):
             reponse_summary = response.resume_summary
             resume_embedding = create_resume_embeddings(reponse_summary)
             interview.resume_embedding = resume_embedding
-            interview.status = "ready"
+            interview.status = InterviewStatus.RESUME_READY.value
             db.add(interview)
     except Exception as e:
         logger.error(f"Failed to extract resume context due to: {e}")

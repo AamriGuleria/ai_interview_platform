@@ -66,3 +66,5 @@ class EvaluationResult(BaseModel):
 
 class EvaluationResultBatch(BaseModel):
     results: List[EvaluationResult]
+
+    

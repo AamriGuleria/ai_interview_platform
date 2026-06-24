@@ -1,6 +1,6 @@
 import logging
 from sqlalchemy import select
-from models.Interview import Interview, InterviewQuestion
+from models.Interview import Interview, InterviewQuestion, InterviewStatus
 from services.embeddings import retrieve_questions_from_embedding
 from services.llm_service import GeminiService
 from database.session_manager import db_manager
@@ -60,7 +60,7 @@ def prepare_interview(interview_id: int):
             if not interview:
                 raise Exception("Interview not found")
 
-            interview.status = "preparing"
+            interview.status = InterviewStatus.PREPARING_QUESTIONS.value
             db.commit()
 
             questions = retrieve_questions_from_embedding(
@@ -130,7 +130,7 @@ def prepare_interview(interview_id: int):
                     logger.error(f"Personalization batch {batch_num} failed: {e}")
                     db.rollback()
 
-            interview.status = "ready"
+            interview.status = InterviewStatus.QUESTIONS_READY.value
             db.commit()
             logger.info(f"Interview {interview_id} is ready to start")
 
@@ -141,6 +141,6 @@ def prepare_interview(interview_id: int):
                 select(Interview).where(Interview.id == interview_id)
             ).scalars().one_or_none()
             if interview:
-                interview.status = "preparation_failed"
+                interview.status = InterviewStatus.FAILED.value
                 db.commit()
         raise
