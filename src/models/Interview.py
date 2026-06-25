@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel
-from sqlalchemy import ARRAY, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import ARRAY, JSON, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from models.Base import Base
 from pgvector.sqlalchemy import Vector
@@ -72,6 +72,14 @@ class Interview(Base):
     interview_context = Column(JSONB, nullable = True)
     resume_text = Column(Text, nullable=True)
     resume_summary = Column(Text, nullable=True)
+    overall_score = Column(Float, nullable=True)
+    overall_summary = Column(Text, nullable=True)
+    overall_strengths = Column(JSON, nullable=True)
+    overall_gaps = Column(JSON, nullable=True)
+    recommendation = Column(Text, nullable=True)
+    communication_score = Column(Float, nullable=True)
+    technical_score = Column(Float, nullable=True)
+    learning_plan = Column(ARRAY(String(255)), nullable=True)
     ai_evaluation = Column(JSONB,nullable=True)
     questions = relationship("InterviewQuestion", back_populates="interview")
 

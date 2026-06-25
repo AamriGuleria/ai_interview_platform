@@ -47,12 +47,14 @@ async def fetch_interview_context(
 @router.get("/{interview_id}/next-question")
 async def get_next_interview_question(
     interview_id: int,
+    background_tasks: BackgroundTasks,
     # limit: int = 10,
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db)
+
 ):
     service = InterviewService(db)
-    return await service.get_next_interview_question(interview_id, current_user)
+    return await service.get_next_interview_question(interview_id, background_tasks, current_user)
 
 @router.post("/{interview_id}/submit-interview-answer")
 async def submit_answer(

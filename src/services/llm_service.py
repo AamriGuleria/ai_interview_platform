@@ -1,7 +1,7 @@
 from google import genai
-from schemas.interview_schema import EvaluationResult, PersonalizedQuestionBatch, QuestionMetadataBatch, ResumeContext, QuestionMetadata
+from schemas.interview_schema import EvaluationResult, InterviewResponse, PersonalizedQuestionBatch, QuestionMetadataBatch, ResumeContext, QuestionMetadata
 from core.config import config
-from core.constants import KNOWLEDGE_EVALUATION_PROMPT, METADATA_ENRICHMENT_PROMPT, PERSONALIZATION_PROMPT, EVALUATION_PROMPT
+from core.constants import INTERVIEW_RESULT_PROMPT, KNOWLEDGE_EVALUATION_PROMPT, METADATA_ENRICHMENT_PROMPT, PERSONALIZATION_PROMPT, EVALUATION_PROMPT
 from ollama import chat
 import json
 import re
@@ -206,3 +206,26 @@ class GeminiService:
 
         except Exception as e:
             raise RuntimeError(f"Failed to evaluate answer: {e}")
+        
+
+    def get_interview_evaluation(
+        self,
+        interview_id: int,
+        interview_context: dict,
+        evaluation_results: list[EvaluationResult]
+    ):
+        try:
+            prompt = INTERVIEW_RESULT_PROMPT.format(
+                interview_context=json.dumps(interview_context, indent=2),
+                evaluation_data=json.dumps([r.model_dump() for r in evaluation_results], indent=2)
+            )
+            response = chat(
+                model=self.OLLAMA_MODEL,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            raw = response["message"]["content"]
+            logger.info(f"Raw ollama response: {raw[:200]}")
+            json_data = self._parse_ollama_json(raw)
+            return InterviewResponse.model_validate(json_data)
+        except Exception as e:
+            raise RuntimeError(f"Failed to evaluate interview: {e}")

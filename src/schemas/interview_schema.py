@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List
 from pydantic import BaseModel
 
 
@@ -67,4 +67,15 @@ class EvaluationResult(BaseModel):
 class EvaluationResultBatch(BaseModel):
     results: List[EvaluationResult]
 
-    
+class InterviewResponse(BaseModel):
+    overall_score: float
+    technical_score: float
+    communication_score: float
+    overall_summary: str
+    overall_strengths: list[str]
+    overall_gaps: list[str]
+    recommendation: str
+    learning_plan: list[str]
+
+class InterviewResponseBatch(BaseModel):
+    results: list[InterviewResponse]

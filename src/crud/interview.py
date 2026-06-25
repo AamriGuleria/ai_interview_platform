@@ -4,8 +4,10 @@ from uuid import uuid4
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
+from background_tasks.prepare_interview_result import prepare_interview_report
 from models.Interview import Interview, InterviewQuestion, InterviewStatus
 from core.config import config
+from schemas.interview_schema import InterviewResponse
 from services.minio_client import MinioClient
 from models.Users import Users
 from fastapi import BackgroundTasks, HTTPException, UploadFile
@@ -105,6 +107,7 @@ class InterviewService:
     async def get_next_interview_question(
         self,
         interview_id: int,
+        background_tasks: BackgroundTasks,
         current_user: Users
     ):
         from database.session_manager import db_manager
@@ -141,6 +144,11 @@ class InterviewService:
                 )
             ).scalars().first()
             if not interview_question:
+                # Trigger Overall interview evaluation
+                background_tasks.add_task(
+                    prepare_interview_report,
+                    interview_id
+                )
                 return {
                     "message": "Interview completed"
                 }
@@ -269,3 +277,44 @@ class InterviewService:
             logger.error(f"Error fetching interview preparation progress: {e}")
             raise HTTPException(status_code=500, detail="Internal server error"
     )
+    
+    # Helper function
+    def get_interview(self, interview_id):
+        interview = (
+            self.db.execute(
+                select(Interview).where(Interview.id == interview_id)
+            )
+        ).scalars().one_or_none()
+        if not interview:
+            raise Exception("Interview not found")
+        return interview
+    
+    def get_interview_questions(self, interview_id):
+        try:
+            interview_questions = (
+                self.db.execute(
+                    select(InterviewQuestion)
+                    .where(InterviewQuestion.interview_id == interview_id)
+                )
+            ).scalars().all()
+            return interview_questions
+        except Exception as e:
+            raise
+
+    def set_interview_result(
+        self,
+        interview: Interview,
+        result: InterviewResponse
+    ):
+        try:
+            interview.overall_score = result.overall_score
+            interview.technical_score = result.technical_score
+            interview.communication_score = result.communication_score
+            interview.overall_summary = result.overall_summary
+            interview.overall_strengths = result.overall_strengths
+            interview.overall_gaps = result.overall_gaps
+            interview.recommendation = result.recommendation
+            interview.learning_plan = result.learning_plan
+            self.db.commit()
+        except Exception as e:
+            raise 
