@@ -17,6 +17,7 @@ class InterviewStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     FAILED = "failed"
+    RESULT_PREPARED = "result_prepared"
 
 
 class Question(Base):

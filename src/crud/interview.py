@@ -205,26 +205,23 @@ class InterviewService:
         current_user: Users 
     ):
         try:
-            # First we need to find that evaluation of all the interview questions has been completed , if not show the pop up
-            incomplete_interview_question = await self.db.execute(
-                select(InterviewQuestion)
-                .where(
-                    InterviewQuestion.interview_id == interview_id,
-                    InterviewQuestion.user_answer.isnot(None),
-                    InterviewQuestion.score.is_(None)
-                )
-            )
-            if incomplete_interview_question:
-                return {
-                    "message": "Evaluation of some answers is still in progress. Please check back later."
-                }
-            #View the results if completed
-            interview = await self.db.execute(
+            interview_result = await self.db.execute(
                 select(Interview)
                 .where(
                     Interview.id == interview_id
                 )
             )
+            interview = interview_result.scalars().one_or_none()
+            if not interview:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Interview not found"
+                )
+            if interview.status != InterviewStatus.RESULT_PREPARED.value:
+                return {
+                    "message": "Evaluation is in progress",
+                    "status": interview.status
+                }
             result = {
                 "overall_score": interview.overall_score,
                 "overall_summary": interview.overall_summary,
@@ -307,6 +304,7 @@ class InterviewService:
             interview.overall_gaps = result.overall_gaps
             interview.recommendation = result.recommendation
             interview.learning_plan = result.learning_plan
+            interview.status = InterviewStatus.RESULT_PREPARED.value
             self.db.commit()
         except Exception as e:
             raise 
