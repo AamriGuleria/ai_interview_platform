@@ -305,6 +305,31 @@ class InterviewService:
             interview.recommendation = result.recommendation
             interview.learning_plan = result.learning_plan
             interview.status = InterviewStatus.RESULT_PREPARED.value
+            interview.completed_at = datetime.now(datetime.UTC)
             self.db.commit()
         except Exception as e:
             raise 
+
+    async def get_all_user_interviews(
+        self,
+        user: Users
+    ):
+        try:
+            interviews = self.db.execute(
+                select(Interview).where(Interview.user_id == user.id))
+            
+            result = []
+            for interview in interviews:
+                result.append(
+                    {
+                        "id": interview.id,
+                        "target_role": interview.target_role,
+                        "experience": interview.experience,
+                        "skills": interview.skills,
+                        "status": interview.status,
+                        "started_at": interview.started_at,
+                        "completed_at": interview.completed_at,
+                    }
+                )
+        except Exception as e:
+            raise

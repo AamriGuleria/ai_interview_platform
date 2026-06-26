@@ -77,3 +77,13 @@ async def get_interview_result(
 ):
     service = InterviewService(db)
     return await service.get_interview_result(interview_id, current_user)
+
+
+@router.get("/user_interviews")
+async def get_all_user_interviews(
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    service = InterviewService(db)
+    interviews = await service.get_all_user_interviews(current_user)
+    return interviews
