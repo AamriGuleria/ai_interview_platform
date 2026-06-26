@@ -12,7 +12,7 @@ def prepare_interview_report(
         with db_manager.sync_session_scope() as sync_db:
             interview_service = InterviewService(sync_db)
             interview = interview_service.get_interview(interview_id)
-            interview_service.prepare_interview_result(interview)
+            prepare_interview_result(interview)
     except Exception as e:
         raise
 
@@ -35,7 +35,7 @@ def prepare_interview_result(interview: Interview):
                     "strengths": iq.strengths,
                     "gaps": iq.gaps
                 })
-            llm_service = GeminiService(sync_db)
+            llm_service = GeminiService()
             result = llm_service.get_interview_evaluation(
                 interview_id=interview.id,
                 interview_context=interview.interview_context or {},

@@ -215,9 +215,20 @@ class GeminiService:
         evaluation_results: list[EvaluationResult]
     ):
         try:
+            serialized_results = []
+            for result in evaluation_results:
+                if hasattr(result, "model_dump"):
+                    serialized_results.append(result.model_dump())
+                elif isinstance(result, dict):
+                    serialized_results.append(result)
+                elif hasattr(result, "dict"):
+                    serialized_results.append(result.dict())
+                else:
+                    serialized_results.append(result)
+
             prompt = INTERVIEW_RESULT_PROMPT.format(
                 interview_context=json.dumps(interview_context, indent=2),
-                evaluation_data=json.dumps([r.model_dump() for r in evaluation_results], indent=2)
+                evaluation_data=json.dumps(serialized_results, indent=2)
             )
             response = chat(
                 model=self.OLLAMA_MODEL,

@@ -310,7 +310,7 @@ Generate:
 
 Return ONLY valid JSON:
 
-{
+{{
 "overall_score": 0,
 "technical_score": 0,
 "communication_score": 0,
@@ -333,7 +333,7 @@ Return ONLY valid JSON:
 ]
 ```
 
-}
+}}
 
 Important:
 

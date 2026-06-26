@@ -219,32 +219,20 @@ class InterviewService:
                     "message": "Evaluation of some answers is still in progress. Please check back later."
                 }
             #View the results if completed
-            interview_questions = await self.db.execute(
-                select(InterviewQuestion)
+            interview = await self.db.execute(
+                select(Interview)
                 .where(
-                    InterviewQuestion.interview_id == interview_id
+                    Interview.id == interview_id
                 )
-                .order_by(InterviewQuestion.id)
             )
-            total_score = sum(iq.score for iq in interview_questions.scalars().all() if iq.score is not None)
-            avg_score = total_score / len(interview_questions) if interview_questions else 0
-            percentage = avg_score * 20
             result = {
-                "questions": [
-                    {
-                        "interview_question_id": iq.id,
-                        "question_text": iq.personalized_question or iq.original_question,
-                        "user_answer": iq.user_answer,
-                        "score": iq.score,
-                        "feedback": iq.feedback,  # ← Added missing comma
-                        "strengths": iq.strengths,
-                        "gaps": iq.gaps,
-                        "assigned_at": iq.assigned_at
-                    }
-                    for iq in interview_questions
-                ],
-                "average_score": avg_score,
-                "percentage": percentage
+                "overall_score": interview.overall_score,
+                "overall_summary": interview.overall_summary,
+                "overall_strengths":
+                    interview.overall_strengths,
+                "overall_gaps": interview.overall_gaps,
+                "recommendation": interview.recommendation,
+                "learning_plan": interview.learning_plan    
             }
             return result
         except Exception as e:
