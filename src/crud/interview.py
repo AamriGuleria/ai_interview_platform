@@ -126,7 +126,7 @@ class InterviewService:
                 detail="Interview not found"
             )
 
-        if interview.status != "ready":
+        if interview.status != "questions_ready":
             raise HTTPException(
                 status_code=400,
                 detail=f"Interview is not ready yet. Current status: {interview.status}"
@@ -188,7 +188,10 @@ class InterviewService:
             self.db.add(interview_question)
             await self.db.commit()
             await self.db.refresh(interview_question)
-            background_tasks.add_task(evaluate_answer, interview_question_id)
+
+            if getattr(config, "question_evaluation_mode", "overall").lower() == "per_question":
+                background_tasks.add_task(evaluate_answer, interview_question_id)
+
             return {"message": "Answer submitted successfully",
                 "interview_question_id": interview_question.id}
         except Exception as e:
@@ -258,7 +261,8 @@ class InterviewService:
                 await self.db.execute(
                     select(Interview)
                     .where(
-                        Interview.id == interview_id
+                        Interview.id == interview_id,
+                        Interview.user_id == current_user.id
                     )
                 )
             ).scalars().first()

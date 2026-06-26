@@ -1,12 +1,14 @@
-from crud.interview import InterviewService
 from database.session_manager import db_manager
 from models.Interview import Interview
 from services.llm_service import GeminiService
+
 
 def prepare_interview_report(
     interview_id: int
 ):
     try:
+        from crud.interview import InterviewService
+
         with db_manager.sync_session_scope() as sync_db:
             interview_service = InterviewService(sync_db)
             interview = interview_service.get_interview(interview_id)
@@ -14,8 +16,11 @@ def prepare_interview_report(
     except Exception as e:
         raise
 
+
 def prepare_interview_result(interview: Interview):
     try:
+        from crud.interview import InterviewService
+
         with db_manager.sync_session_scope() as sync_db:
             interview_service = InterviewService(sync_db)
             interview_questions = interview_service.get_interview_questions(interview.id)

@@ -34,5 +34,6 @@ class Config(BaseSettings):
     secure: bool = False
     bucket_name: str = "resume"
     gemini_api_key: str = "hello"
+    question_evaluation_mode: str = "overall"
     
 config = Config()

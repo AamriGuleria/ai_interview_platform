@@ -15,7 +15,7 @@ async def get_interview_prep_progress(
     db: AsyncSession = Depends(get_async_db)
 ):
     service = InterviewService(db)
-    return await service.get_interview_prep_progress(current_user, interview_id)
+    return await service.get_interview_prep_progress(interview_id, current_user)
 
 @router.post("/interview_info")
 async def fetch_interview_context(
