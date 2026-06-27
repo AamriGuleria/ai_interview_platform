@@ -72,7 +72,7 @@ def prepare_interview(interview_id: int):
             questions_to_personalize = []
             question_to_iq = {}
             resume_context = interview.interview_context or {}
-            for question in questions:
+            for index, question in enumerate(questions):
                 if should_personalize(
                     question,
                     resume_context
@@ -83,7 +83,8 @@ def prepare_interview(interview_id: int):
                     interview_id=interview_id,
                     original_question=question.question_text,
                     original_expected_answer=question.expected_answer,
-                    question_id=question.id
+                    question_id=question.id,
+                    display_order=index + 1,
                 )
                 db.add(iq)
                 db.flush()

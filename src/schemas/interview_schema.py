@@ -63,6 +63,7 @@ class EvaluationResult(BaseModel):
     feedback: str
     strengths: List[str]
     gaps: List[str]
+    follow_ups: bool = False
 
 class EvaluationResultBatch(BaseModel):
     results: List[EvaluationResult]

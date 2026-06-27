@@ -35,5 +35,6 @@ class Config(BaseSettings):
     bucket_name: str = "resume"
     gemini_api_key: str = "hello"
     question_evaluation_mode: str = "overall"
+    max_follow_ups_per_interview: int = 8
     
 config = Config()

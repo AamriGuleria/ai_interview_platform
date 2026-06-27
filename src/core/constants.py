@@ -160,10 +160,36 @@ Return JSON only:
     "score": <float between 0-100>,
     "feedback": "<constructive feedback addressing: what was good, what was missing, suggestions for improvement>",
     "strengths": ["<key strength>"],
-    "gaps": ["<area of improvement>"]
+    "gaps": ["<area of improvement>"],
+    "follow_ups": <boolean>
 }}
 
 Be fair but honest. Score should reflect true understanding, not just effort.
+"""
+
+FOLLOW_UP_QUESTION_PROMPT = """
+You are an expert technical interviewer continuing a live interview.
+
+Candidate Context:
+{interview_context}
+
+Original Question:
+{question}
+
+Expected Answer:
+{expected_answer}
+
+Candidate's Answer:
+{user_answer}
+
+Task:
+If the candidate's answer suggests a deeper probing question would be valuable, generate one concise follow-up question.
+Otherwise, return a JSON object with an empty follow-up question.
+
+Return JSON only:
+{{
+    "follow_up_question": "<concise follow-up question or empty string>"
+}}
 """
 
 KNOWLEDGE_EVALUATION_PROMPT = """
@@ -215,7 +241,8 @@ Return JSON only:
     "score": <float between 0-100>,
     "feedback": "<constructive feedback addressing: what was good, what was missing, suggestions for improvement>",
     "strengths": ["<key strength>"],
-    "gaps": ["<area of improvement>"]
+    "gaps": ["<area of improvement>"],
+    "follow_ups": <boolean>
 }}
 
 Be fair but honest. Score should reflect true understanding, not just effort.

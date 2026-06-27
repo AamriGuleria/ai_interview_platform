@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel
-from sqlalchemy import ARRAY, JSON, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import ARRAY, JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from models.Base import Base
 from pgvector.sqlalchemy import Vector
@@ -112,6 +112,10 @@ class InterviewQuestion(Base):
     )
     strengths = Column(ARRAY(String))
     gaps = Column(ARRAY(String))
+    follow_up_requested = Column(Boolean, default=False, nullable=False)
+    is_follow_up = Column(Boolean, default=False, nullable=False)
+    parent_question_id = Column(Integer, ForeignKey("interview_questions.id"), nullable=True)
+    display_order = Column(Float, default=0.0, nullable=False)
     interview = relationship("Interview", back_populates="questions")
 
 class Answer(Base):

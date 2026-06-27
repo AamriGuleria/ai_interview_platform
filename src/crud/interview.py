@@ -140,7 +140,7 @@ class InterviewService:
                         InterviewQuestion.interview_id == interview_id,
                         InterviewQuestion.user_answer.is_(None)
                     )
-                    .order_by(InterviewQuestion.id)
+                    .order_by(InterviewQuestion.display_order, InterviewQuestion.id)
                 )
             ).scalars().first()
             if not interview_question:
