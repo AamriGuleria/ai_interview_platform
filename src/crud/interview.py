@@ -15,7 +15,7 @@ from background_tasks.resume_text_extraction import extract_resume_context
 from services.embeddings import retrieve_questions_from_embedding
 from services.llm_service import GeminiService
 from background_tasks.prepare_interview import prepare_interview
-from background_tasks.evaluate_answers import evaluate_answer
+from background_tasks.evaluate_answers import evaluate_answer, generate_follow_up_question
 
 logger = logging.getLogger(__name__)
 
@@ -189,8 +189,7 @@ class InterviewService:
             await self.db.commit()
             await self.db.refresh(interview_question)
 
-            if getattr(config, "question_evaluation_mode", "overall").lower() == "per_question":
-                background_tasks.add_task(evaluate_answer, interview_question_id)
+            background_tasks.add_task(generate_follow_up_question, interview_question_id)
 
             return {"message": "Answer submitted successfully",
                 "interview_question_id": interview_question.id}

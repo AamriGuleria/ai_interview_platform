@@ -23,17 +23,19 @@ def prepare_interview_result(interview: Interview):
 
         with db_manager.sync_session_scope() as sync_db:
             interview_service = InterviewService(sync_db)
-            interview_questions = interview_service.get_interview_questions(interview.id)
+            interview_questions = [
+                iq for iq in interview_service.get_interview_questions(interview.id)
+                if iq.user_answer
+            ]
             evaluation_data = []
 
             for iq in interview_questions:
                 evaluation_data.append({
-                    "question": iq.personalized_question
-                        or iq.original_question,
-                    "score": iq.score,
-                    "feedback": iq.feedback,
-                    "strengths": iq.strengths,
-                    "gaps": iq.gaps
+                    "question": iq.personalized_question or iq.original_question,
+                    "user_answer": iq.user_answer,
+                    "expected_answer": iq.original_expected_answer or "",
+                    "is_follow_up": bool(iq.is_follow_up),
+                    "parent_question_id": iq.parent_question_id,
                 })
             llm_service = GeminiService()
             result = llm_service.get_interview_evaluation(
