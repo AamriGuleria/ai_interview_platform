@@ -1,4 +1,5 @@
-from minio import Minio
+from fastapi import HTTPException
+from minio import Minio, S3Error
 from core.config import config
 
 
@@ -49,3 +50,16 @@ class MinioClient():
             object_name,
             local_path
         )
+
+    def delete_file(
+        self,
+        bucket_name: str,
+        object_name: str
+    ):
+        try:
+            self.client.remove_object(bucket_name, object_name)
+            return {"message": f"Object '{object_name}' deleted successfully"}
+        except S3Error as err:
+            if err.code == "NoSuchKey":
+                raise HTTPException(status_code=404, detail="Object not found")
+            raise HTTPException(status_code=500, detail=str(err))

@@ -122,6 +122,9 @@ def extract_resume_context(interview_id: int):
             interview.resume_embedding = resume_embedding
             interview.status = InterviewStatus.RESUME_READY.value
             db.add(interview)
+
+            # Remove Resume file from minio
+            minio_service.delete_file(config.bucket_name, interview.resume_url)
     except Exception as e:
         logger.error(f"Failed to extract resume context due to: {e}")
         raise
