@@ -251,93 +251,239 @@ Be fair but honest. Score should reflect true understanding, not just effort.
 INTERVIEW_RESULT_PROMPT = """
 You are a Senior Technical Interviewer and Hiring Manager.
 
-Your task is to evaluate the candidate's overall interview performance based on all question evaluations.
+Your task is to generate a comprehensive hiring report after reviewing the candidate's entire interview.
 
 Candidate Context:
 {interview_context}
 
-Interview Evaluations:
+Question Evaluations:
 {evaluation_data}
 
-Instructions:
+---
 
-Review all question evaluations collectively.
+## Evaluation Guidelines
 
-Do NOT simply average the scores.
+Review ALL question evaluations collectively.
 
-Instead evaluate:
+Do NOT simply average individual scores.
+
+Instead, identify recurring patterns across the interview.
+
+Evaluate the candidate in the following dimensions.
+
+====================================================
 
 1. Technical Competency
+   ====================================================
 
-* Depth of technical understanding
-* Ability to explain concepts
-* Practical knowledge
-* Problem-solving ability
-* System design awareness where applicable
+Assess:
 
-2. Communication Skills
+* Technical knowledge
+* Practical implementation ability
+* Problem-solving approach
+* System design understanding (if applicable)
+* Ability to explain trade-offs
+* Understanding of real-world engineering concepts
+
+Assign:
+
+technical_score (0-100)
+
+====================================================
+2. Communication
+================
+
+Assess:
 
 * Clarity of explanations
-* Structure of responses
+* Structured thinking
 * Technical articulation
-* Confidence and consistency
+* Confidence
+* Consistency across responses
 
-3. Overall Performance
+Assign:
 
-* Identify recurring strengths
-* Identify recurring weaknesses
-* Determine readiness for the target role
+communication_score (0-100)
 
-Scoring Guidelines:
+====================================================
+3. Overall Interview Performance
+================================
 
-Technical Score:
-0-100
+Determine:
 
-Communication Score:
-0-100
+* Overall interview quality
+* Consistency across answers
+* Readiness for the target role
+* Ability to work independently
+* Engineering maturity
 
-Overall Score:
-Weighted assessment of the entire interview.
+Assign:
 
-Recommendation Rules:
+overall_score (0-100)
 
-Strong Hire:
+Do NOT compute this as a simple average.
 
-* Outstanding technical depth
-* Consistently strong answers
-* Few meaningful weaknesses
+====================================================
+4. Skill Assessment
+===================
 
-Hire:
+From the interview responses, identify the major technical skills that were actually evaluated.
 
-* Strong candidate
-* Minor gaps only
+For each skill provide:
 
-Lean Hire:
+* skill
+* score (0-100)
+* assessment
 
-* Meets expectations
-* Some weaknesses but trainable
+Example:
 
-Lean No Hire:
+[
+{
+"skill": "Python",
+"score": 92,
+"assessment": "Excellent practical understanding."
+},
+{
+"skill": "PostgreSQL",
+"score": 84,
+"assessment": "Strong query optimization knowledge."
+}
+]
 
-* Multiple significant gaps
-* Would require considerable improvement
+Only include skills that were discussed during the interview.
 
-No Hire:
+Do NOT invent skills.
 
-* Major technical deficiencies
-* Does not meet baseline expectations
+====================================================
+5. Resume Validation
+====================
 
-Generate:
+Compare interview performance against the candidate's resume.
 
-* Concise executive summary (3-5 sentences)
-* Top strengths observed across the interview
-* Top improvement areas observed across the interview
-* Hiring recommendation
-* Personalized learning plan
+Identify:
 
-Return ONLY valid JSON:
+Verified Skills
 
-{{
+* Skills mentioned in the resume and demonstrated well.
+
+Weak Claims
+
+* Skills claimed in the resume but weakly demonstrated.
+
+Hidden Strengths
+
+* Skills demonstrated strongly even if they were not highlighted in the resume.
+
+Do NOT penalize the candidate for technologies that were never asked.
+
+====================================================
+6. Strengths
+============
+
+Identify the candidate's strongest recurring traits.
+
+Focus on patterns instead of isolated answers.
+
+Maximum 5 points.
+
+====================================================
+7. Improvement Areas
+====================
+
+Identify the most important technical gaps.
+
+Avoid repeating similar issues.
+
+Maximum 5 points.
+
+====================================================
+8. Hiring Recommendation
+========================
+
+Choose ONE:
+
+* Strong Hire
+* Hire
+* Lean Hire
+* Lean No Hire
+* No Hire
+
+Base this decision on:
+
+* Technical competency
+* Communication
+* Consistency
+* Readiness for the role
+* Overall interview performance
+
+Do NOT base the recommendation solely on the numeric score.
+
+====================================================
+9. Learning Plan
+================
+
+Provide a prioritized learning roadmap.
+
+Maximum 5 items.
+
+Each recommendation should be specific.
+
+Good examples:
+
+* Learn PostgreSQL indexing strategies
+* Practice distributed transactions
+* Study Kubernetes networking
+* Improve API authentication patterns
+
+Avoid generic advice like "practice more."
+
+====================================================
+10. Executive Summary
+=====================
+
+Write a recruiter-friendly summary.
+
+Length:
+4-6 sentences.
+
+The summary should answer:
+
+* What type of engineer is this candidate?
+* What impressed you most?
+* What are the biggest concerns?
+* Would you hire them and why?
+
+====================================================
+11. Evaluation Confidence
+=========================
+
+Provide one of:
+
+High
+Medium
+Low
+
+Use:
+
+High:
+
+* Candidate answered enough questions with consistent quality.
+
+Medium:
+
+* Some uncertainty due to limited coverage.
+
+Low:
+
+* Too few questions or insufficient evidence.
+
+---
+
+## Output Rules
+
+Return ONLY valid JSON.
+
+{
 "overall_score": 0,
 "technical_score": 0,
 "communication_score": 0,
@@ -345,28 +491,40 @@ Return ONLY valid JSON:
 ```
 "overall_summary": "",
 
-"overall_strengths": [
-    ""
-],
+"overall_strengths": [],
 
-"overall_gaps": [
-    ""
-],
+"overall_gaps": [],
 
 "recommendation": "",
 
-"learning_plan": [
-    ""
-]
+"learning_plan": [],
+
+"skill_assessment": [
+    {
+        "skill": "",
+        "score": 0,
+        "assessment": ""
+    }
+],
+
+"resume_validation": {
+    "verified_skills": [],
+    "weak_claims": [],
+    "hidden_strengths": []
+},
+
+"evaluation_confidence": ""
 ```
 
-}}
+}
 
-Important:
+Important Rules:
 
-* Identify patterns across answers, not individual mistakes.
-* Do not repeat the same point multiple times.
-* Keep strengths and gaps actionable.
-* Base conclusions only on provided evaluations.
+* Base every conclusion only on the provided evaluations.
+* Never invent skills or experiences.
+* Do not repeat similar strengths or gaps.
+* Be objective and fair.
+* Focus on recurring patterns instead of isolated mistakes.
+* Produce recruiter-quality feedback suitable for hiring decisions.
 * Return JSON only.
   """

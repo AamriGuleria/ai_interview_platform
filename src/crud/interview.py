@@ -228,7 +228,10 @@ class InterviewService:
                     interview.overall_strengths,
                 "overall_gaps": interview.overall_gaps,
                 "recommendation": interview.recommendation,
-                "learning_plan": interview.learning_plan    
+                "learning_plan": interview.learning_plan,
+                "skill_assessment": interview.skill_assessment,
+                "resume_validation": interview.resume_validation,
+                "evaluation_confidence": interview.evaluation_confidence   
             }
             return result
         except Exception as e:
@@ -303,6 +306,16 @@ class InterviewService:
             interview.overall_gaps = result.overall_gaps
             interview.recommendation = result.recommendation
             interview.learning_plan = result.learning_plan
+            interview.skill_assessment = [
+                skill.model_dump()
+                for skill in result.skill_assessment
+            ]
+            interview.resume_validation = (
+                result.resume_validation.model_dump()
+            )
+            interview.evaluation_confidence = (
+                result.evaluation_confidence
+            )
             interview.status = InterviewStatus.RESULT_PREPARED.value
             interview.completed_at = datetime.now(datetime.UTC)
             self.db.commit()
