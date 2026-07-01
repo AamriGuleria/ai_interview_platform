@@ -129,7 +129,7 @@ class InterviewService:
         if interview.status != "questions_ready":
             raise HTTPException(
                 status_code=400,
-                detail=f"Interview is not ready yet. Current status: {interview.status}"
+                detail=f"Interview Current status: {interview.status}"
             )
 
         with db_manager.sync_session_scope() as sync_db:
