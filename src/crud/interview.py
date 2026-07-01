@@ -314,9 +314,12 @@ class InterviewService:
         user: Users
     ):
         try:
-            interviews = self.db.execute(
-                select(Interview).where(Interview.user_id == user.id))
-            
+            interviews = (
+                await self.db.execute(
+                    select(Interview).where(Interview.user_id == user.id)
+                )
+            ).scalars().all()
+
             result = []
             for interview in interviews:
                 result.append(
@@ -330,5 +333,6 @@ class InterviewService:
                         "completed_at": interview.completed_at,
                     }
                 )
+            return result
         except Exception as e:
             raise
