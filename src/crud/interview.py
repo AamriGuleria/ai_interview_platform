@@ -218,7 +218,7 @@ class InterviewService:
                 )
             if interview.status != InterviewStatus.RESULT_PREPARED.value:
                 return {
-                    "message": "Evaluation is in progress",
+                    "message": "Evaluation status is:",
                     "status": interview.status
                 }
             result = {
