@@ -231,7 +231,9 @@ class InterviewService:
                 "learning_plan": interview.learning_plan,
                 "skill_assessment": interview.skill_assessment,
                 "resume_validation": interview.resume_validation,
-                "evaluation_confidence": interview.evaluation_confidence   
+                "evaluation_confidence": interview.evaluation_confidence,
+                "communication_score": interview.communication_score,
+                "technical_score": interview.technical_score   
             }
             return result
         except Exception as e:
