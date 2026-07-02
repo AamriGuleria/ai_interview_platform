@@ -21,3 +21,4 @@ lxml
 apscheduler
 sentence-transformers
 pgvector
+gTTS   

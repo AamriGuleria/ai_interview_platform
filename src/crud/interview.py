@@ -1,6 +1,9 @@
 from datetime import datetime
 from typing import List
 from uuid import uuid4
+import os
+import tempfile
+from fastapi.responses import FileResponse
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
@@ -16,6 +19,7 @@ from services.embeddings import retrieve_questions_from_embedding
 from services.llm_service import GeminiService
 from background_tasks.prepare_interview import prepare_interview
 from background_tasks.evaluate_answers import evaluate_answer, generate_follow_up_question
+from gtts import gTTS
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +165,62 @@ class InterviewService:
                 "assigned_at":
                     interview_question.assigned_at
             }
+        
+    async def get_next_interview_question_speech(
+        self,
+        interview_id: int,
+        background_tasks: BackgroundTasks,
+        current_user: Users
+    ):
+        from database.session_manager import db_manager
+        try:
+            interview = (
+                await self.db.execute(
+                    select(Interview).where(
+                        Interview.id == interview_id,
+                        Interview.user_id == current_user.id
+                    )
+                )
+            ).scalars().one_or_none()
 
+            if not interview:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Interview not found"
+                )
+            if interview.status != "questions_ready":
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Interview Current status: {interview.status}"
+                )
+            with db_manager.sync_session_scope() as sync_db:
+                interview_question = (
+                    sync_db.execute(
+                        select(InterviewQuestion)
+                        .where(
+                            InterviewQuestion.interview_id == interview_id,
+                            InterviewQuestion.user_answer.is_(None)
+                        )
+                        .order_by(InterviewQuestion.display_order, InterviewQuestion.id)
+                    )
+                ).scalars().first()
+                if not interview_question:
+                    background_tasks.add_task(prepare_interview_report, interview_id)
+                    return {"message": "Interview completed"}
+                question_text = interview_question.personalized_question or interview_question.original_question
+                tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+                tmp.close()
+                tts = gTTS(text=question_text, lang='en')
+                tts.save(tmp.name)
+                background_tasks.add_task(os.unlink, tmp.name)
+                return FileResponse(tmp.name, media_type="audio/mpeg", filename="speech.mp3")
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error fetching speech: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+            
     async def submit_answer(
         self,
         interview_id: int,

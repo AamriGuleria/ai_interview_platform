@@ -43,6 +43,15 @@ async def fetch_interview_context(
 #     service = InterviewService(db)
 #     return await service.get_interview_questions(interview_id, current_user, background_tasks)
 
+@router.get("/speech/question")
+async def get_next_question_speech(
+    interview_id: int,
+    background_tasks: BackgroundTasks,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    service = InterviewService(db)
+    return await service.get_next_interview_question_speech(interview_id, background_tasks, current_user)
 
 @router.get("/{interview_id}/next-question")
 async def get_next_interview_question(
