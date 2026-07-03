@@ -220,7 +220,21 @@ class InterviewService:
         except Exception as e:
             logger.error(f"Error fetching speech: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
-            
+        
+    async def transcribe_speech(
+        self,
+        interview_id: int,
+        interview_question_id: int,
+        audio_file: UploadFile,
+        current_user: Users,
+        background_tasks: BackgroundTasks
+    ):
+        try:
+            pass
+        except Exception as e:
+            logger.error(f"Error processing speech: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+        
     async def submit_answer(
         self,
         interview_id: int,

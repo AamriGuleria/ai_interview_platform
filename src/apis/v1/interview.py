@@ -77,6 +77,17 @@ async def submit_answer(
     service = InterviewService(db)
     return await service.submit_answer(interview_id, answer, current_user, interview_question_id, background_tasks)
 
+@router.post("/{interview_id}/speech/transcribe")
+async def transcribe_speech(
+    interview_id: int,
+    interview_question_id: int,
+    audio_file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    service = InterviewService(db)
+    return await service.transcribe_speech(interview_id, audio_file, current_user, interview_question_id, background_tasks)
 
 @router.get("/{interview_id}/result")
 async def get_interview_result(
