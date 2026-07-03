@@ -20,9 +20,10 @@ from services.llm_service import GeminiService
 from background_tasks.prepare_interview import prepare_interview
 from background_tasks.evaluate_answers import evaluate_answer, generate_follow_up_question
 from gtts import gTTS
+from faster_whisper import WhisperModel
 
 logger = logging.getLogger(__name__)
-
+model = WhisperModel("base", device="cpu", compute_type="int8")
 class InterviewService:
     PERSONALIZATION_BATCH_SIZE = 5
     def __init__(self, db: AsyncSession):
@@ -230,7 +231,21 @@ class InterviewService:
         background_tasks: BackgroundTasks
     ):
         try:
-            pass
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+                content = await audio_file.read()
+                tmp.write(content)
+                tmp_path = tmp.name
+                try:
+                    segments, info = model.transcribe(tmp_path, beam_size=5)
+                    text = " ".join([segment.text for segment in segments])
+                    
+                    return {
+                        "text": text, 
+                        "language": info.language, 
+                        "duration": info.duration
+                    }
+                finally:
+                    os.unlink(tmp_path)
         except Exception as e:
             logger.error(f"Error processing speech: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
