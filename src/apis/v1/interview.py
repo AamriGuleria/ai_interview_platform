@@ -87,7 +87,13 @@ async def transcribe_speech(
     db: AsyncSession = Depends(get_async_db)
 ):
     service = InterviewService(db)
-    return await service.transcribe_speech(interview_id, audio_file, current_user, interview_question_id, background_tasks)
+    return await service.transcribe_speech(
+        interview_id,
+        interview_question_id,
+        audio_file,
+        current_user,
+        background_tasks,
+    )
 
 @router.get("/{interview_id}/result")
 async def get_interview_result(

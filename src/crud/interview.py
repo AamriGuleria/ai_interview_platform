@@ -230,22 +230,27 @@ class InterviewService:
         current_user: Users,
         background_tasks: BackgroundTasks
     ):
+        tmp_path = None
         try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+            fd, tmp_path = tempfile.mkstemp(suffix=".wav")
+            os.close(fd)
+            with open(tmp_path, "wb") as tmp:
                 content = await audio_file.read()
                 tmp.write(content)
-                tmp_path = tmp.name
-                try:
-                    segments, info = model.transcribe(tmp_path, beam_size=5)
-                    text = " ".join([segment.text for segment in segments])
-                    
-                    return {
-                        "text": text, 
-                        "language": info.language, 
-                        "duration": info.duration
-                    }
-                finally:
-                    os.unlink(tmp_path)
+            try:
+                segments, info = model.transcribe(tmp_path, beam_size=5)
+                text = " ".join([segment.text for segment in segments])
+                return {
+                    "text": text,
+                    "language": info.language,
+                    "audio duration": info.duration,
+                }
+            finally:
+                if tmp_path and os.path.exists(tmp_path):
+                    try:
+                        os.unlink(tmp_path)
+                    except PermissionError:
+                        logger.warning(f"Could not remove temporary file: {tmp_path}")
         except Exception as e:
             logger.error(f"Error processing speech: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
