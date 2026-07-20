@@ -5,8 +5,8 @@ from schemas.auth_schema import UserRole
 
 
 pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
+    schemes=["argon2", "bcrypt"], # u[graded to argon2 since it is more secure]
+    deprecated="auto"  # matters when you list multiple schemes
 )
 
 
