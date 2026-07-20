@@ -85,6 +85,8 @@ def prepare_interview(interview_id: int):
                     original_expected_answer=question.expected_answer,
                     question_id=question.id,
                     display_order=index + 1,
+                    distance=question.distance,
+                    similarity=question.similarity
                 )
                 db.add(iq)
                 db.flush()
