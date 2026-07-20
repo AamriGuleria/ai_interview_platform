@@ -59,16 +59,13 @@ def retrieve_questions_from_embedding(
                 .order_by(distance)
                 .limit(limit)
             )
-            .scalars()
             .all()
         )
         question_results = []
-        for question, distance in results:
-            question_results.append({
-                "question": question,
-                "distance": float(distance),
-                "similarity": 1 - float(distance)
-            })
+        for question, dist_value in results:
+            question.distance = float(dist_value)
+            question.similarity = 1 - float(dist_value)
+            question_results.append(question)
         return question_results
     except Exception as e:
         logger.error(f"Error retrieving questions from embedding: {e}")
