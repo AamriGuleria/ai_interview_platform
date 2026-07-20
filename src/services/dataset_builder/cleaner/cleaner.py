@@ -1,8 +1,5 @@
 import re
 
-import re
-
-
 def clean_question(question: str) -> str:
 
     question = question.strip()
