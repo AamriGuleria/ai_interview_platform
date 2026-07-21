@@ -49,22 +49,24 @@ def retrieve_questions_from_embedding(
     limit=50
 ):
     try:
-        return (
+        distance =  Question.embedding.cosine_distance(resume_embedding)
+        results =  (
             db.execute(
-                select(Question)
+                select(Question, distance)
                 .where(
                     Question.embedding.is_not(None)
                 )
-                .order_by(
-                    Question.embedding.cosine_distance(
-                        resume_embedding
-                    )
-                )
+                .order_by(distance)
                 .limit(limit)
             )
-            .scalars()
             .all()
         )
+        question_results = []
+        for question, dist_value in results:
+            question.distance = float(dist_value)
+            question.similarity = 1 - float(dist_value)
+            question_results.append(question)
+        return question_results
     except Exception as e:
         logger.error(f"Error retrieving questions from embedding: {e}")
         return []
