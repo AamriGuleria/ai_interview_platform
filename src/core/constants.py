@@ -690,42 +690,31 @@ Output Format
 -------------------------------------------------------
 
 Return ONLY valid JSON.
-
-{
-    "candidate_name": "",
-
-    "years_of_experience": 0,
-
-    "target_role": "",
-
-    "skills": [],
-
-    "frameworks": [],
-
-    "databases": [],
-
-    "cloud_platforms": [],
-
-    "messaging_systems": [],
-
-    "devops_tools": [],
-
-    "programming_languages": [],
-
-    "projects": [],
-
-    "work_experience": [],
-
-    "education": [],
-
-    "strength_areas": [],
-
-    "recommended_topics": [],
-
-    "difficulty_level": "",
-
-    "retrieval_summary": ""
-}
-
-Return JSON only.
+    {{
+        "candidate_name": "John Doe",
+        "years_of_experience": 5,
+        "target_role":"Software Engineer",
+        "skills": ["Python", "FastAPI", "PostgreSQL"],
+        "projects": [
+            {{
+                "name": "Project Name",
+                "description": "Project description",
+                "technologies": ["Python", "FastAPI"]
+            }}
+        ],
+        "work_experience": [
+            {{
+                "company": "Company Name",
+                "role": "Software Engineer",
+                "duration": "2 years",
+                "responsibilities": ["Developed APIs", "Optimized queries"]
+            }}
+        ],
+        "education": ["Bachelor's in Computer Science"],
+        "strength_areas": ["Backend Development", "Database Optimization"],
+        "recommended_topics": ["System Design", "API Architecture"],
+        "difficulty_level": "Medium",
+        "resume_summary": "Candidate summary for recruiter",
+        "retrieval_summary": "Retrieval summary for retrieval for relevant interview questions"
+    }} 
 """
