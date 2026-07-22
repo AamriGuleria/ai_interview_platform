@@ -77,6 +77,7 @@ class Interview(Base):
     overall_summary = Column(Text, nullable=True)
     overall_strengths = Column(JSON, nullable=True)
     overall_gaps = Column(JSON, nullable=True)
+    retrieval_summary = Column(Text,nullable=True)
     recommendation = Column(Text, nullable=True)
     communication_score = Column(Float, nullable=True)
     skill_assessment = Column(JSONB, nullable=True)
