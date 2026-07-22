@@ -64,6 +64,7 @@ def extract_resume_context(interview_id: int):
             {{
                 "candidate_name": "John Doe",
                 "years_of_experience": 5,
+                "target_role":"Software Engineer",
                 "skills": ["Python", "FastAPI", "PostgreSQL"],
                 "projects": [
                     {{
@@ -114,7 +115,8 @@ def extract_resume_context(interview_id: int):
                 "education": response.education,
                 "strength_areas": response.strength_areas,
                 "recommended_topics": response.recommended_topics,
-                "difficulty_level": response.difficulty_level
+                "difficulty_level": response.difficulty_level,
+                "target_role": response.target_role
             }
             interview.resume_summary = response.resume_summary
             reponse_summary = response.resume_summary
