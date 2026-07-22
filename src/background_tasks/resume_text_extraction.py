@@ -125,8 +125,10 @@ def extract_resume_context(interview_id: int):
                 "target_role": response.target_role
             }
             interview.resume_summary = response.resume_summary
+            interview.retrieval_summary = response.retrieval_summary
             reponse_summary = response.resume_summary
-            resume_embedding = create_resume_embeddings(reponse_summary)
+            retrieval_summary = response.retrieval_summary
+            resume_embedding = create_resume_embeddings(retrieval_summary)
             interview.resume_embedding = resume_embedding
             interview.status = InterviewStatus.RESUME_READY.value
             db.add(interview)
