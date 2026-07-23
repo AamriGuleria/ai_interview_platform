@@ -16,6 +16,7 @@ from ollama import chat
 import json
 import re
 from logging import getLogger
+from litellm import completion
 
 logger = getLogger(__name__)
 class LLMService:
@@ -24,7 +25,43 @@ class LLMService:
             api_key=config.gemini_api_key
         )
         self.OLLAMA_MODEL = "qwen2.5:3b"
+        RESUME_ANALYSIS = "gemini/gemini-2.5-flash"
+        QUESTION_PERSONALIZATION = "gemini/gemini-2.5-flash"
+        QUESTION_EVALUATION = "llama3.2:latest"
+        INTERVIEW_RESULT = "llama3.2:latest"
+        FOLLOWUP = "ollama/gemma2:2b"
+        
+    @staticmethod
+    def chat(
+        model,
+        system_prompt,
+        user_prompt,
+        temperature=0.2,
+        response_format=None
+    ):
 
+        messages = [
+            {
+                "role": "system",
+                "content": system_prompt
+            },
+            {
+                "role": "user",
+                "content": user_prompt
+            }
+        ]
+
+        kwargs = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+        }
+
+        if response_format:
+            kwargs["response_format"] = response_format
+
+        return completion(**kwargs)
+    
     def generate_resume_context(self, prompt: str) -> ResumeContext:
         try:
             response = self.client.models.generate_content(
