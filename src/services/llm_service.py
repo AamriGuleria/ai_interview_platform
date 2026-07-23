@@ -6,6 +6,7 @@ from core.constants import (
     KNOWLEDGE_EVALUATION_PROMPT,
     METADATA_ENRICHMENT_PROMPT,
     PERSONALIZATION_PROMPT,
+    EVALUATION_SYSTEM_PROMPT,
     EVALUATION_PROMPT,
     FOLLOW_UP_QUESTION_PROMPT,
     PERSONALIZATION_SYSTEM_PROMPT
@@ -206,7 +207,7 @@ class GeminiService:
                 )
             response = chat(
                 model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt},{"role":"system","content":EVALUATION_SYSTEM_PROMPT}]
             )
             raw = response["message"]["content"]
             logger.info(f"Raw ollama response: {raw[:200]}")

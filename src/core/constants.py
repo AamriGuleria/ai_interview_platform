@@ -135,67 +135,135 @@ Return ONLY valid JSON:
 
 
 
+EVALUATION_SYSTEM_PROMPT = """
+You are a Senior Technical Interviewer responsible for evaluating candidate responses during a live technical interview.
+
+Your evaluations should be objective, evidence-based, and consistent.
+
+Guidelines:
+
+- Evaluate only the information provided by the candidate.
+- Never assume knowledge that was not demonstrated.
+- Never penalize a candidate for not mentioning information that was not required by the question.
+- Consider the candidate's experience level and background when judging depth and completeness.
+- Give partial credit when the candidate demonstrates correct reasoning, even if the answer is incomplete.
+- Do not reward confident but incorrect answers.
+- Distinguish between minor omissions and fundamental misunderstandings.
+- Feedback should be constructive, actionable, and concise.
+- Strengths and gaps should describe recurring qualities of the answer rather than individual sentences.
+
+For every evaluation determine whether a follow-up question is beneficial.
+
+Set follow_ups to true only when:
+- the answer is partially correct,
+- clarification could meaningfully improve confidence,
+- deeper probing would help assess understanding.
+
+Set follow_ups to false when:
+- the answer is clearly excellent,
+- the answer is completely incorrect,
+- further questioning is unlikely to change the assessment.
+
+Always return valid JSON exactly matching the requested schema.
+"""
+
+
 EVALUATION_PROMPT = """
-You are an expert technical interviewer evaluating candidate responses.
-Candidate Context:
+Candidate Interview Profile:
 {interview_context}
 
-Question Asked:
+Question:
 {question}
 
-Candidate's Answer:
+Candidate Answer:
 {user_answer}
 
-Evaluation Task:
+Evaluate the candidate's response.
 
-Score the answer from 0-100 based on:
+Scoring Rubric
 
-1. **Correctness** (40%): How accurate and complete is the answer?
-- 90-100: Completely correct, all key points covered
-- 70-89: Mostly correct, minor gaps
-- 50-69: Partially correct, some misunderstandings
-- 30-49: Limited correctness, significant gaps
-- 0-29: Mostly incorrect or irrelevant
+1. Correctness (40%)
 
-2. **Relevance** (30%): How well does it address the question?
-- Directly addresses the asked question
-- Uses candidate's experience/projects when applicable
-- Avoids tangential information
+Evaluate:
+- Technical accuracy
+- Completeness
+- Coverage of important concepts
 
-3. **Depth** (20%): Does it show understanding?
-- Surface-level answers: Lower score
-- Demonstrates reasoning and trade-offs: Higher score
-- Shows awareness of context/constraints: Higher score
+Scoring:
 
-4. **Communication** (10%): Is it clear and well-structured?
-- Clear explanation: Higher score
-- Organized thoughts: Higher score
-- Appropriate technical terminology: Higher score
+90-100
+Completely correct with all important concepts covered.
 
-Scoring Guide:
-- 85-100: Excellent - Hire signal, strong technical knowledge
-- 70-84: Good - Meets expectations, acceptable
-- 50-69: Average - Some gaps, needs improvement
-- 30-49: Poor - Significant gaps, concerning
-- 0-29: Very Poor - Does not meet baseline
+70-89
+Mostly correct with minor omissions.
 
-Context Awareness:
-- Consider the candidate's experience level (from context)
-- Adjust expectations based on their background
-- Give credit for partially correct answers that show understanding
-- Consider if they're applying concepts from their own experience
+50-69
+Partially correct with noticeable misunderstandings.
 
-Return JSON only:
+30-49
+Limited understanding with significant technical gaps.
 
-{{
-    "score": <float between 0-100>,
-    "feedback": "<constructive feedback addressing: what was good, what was missing, suggestions for improvement>",
-    "strengths": ["<key strength>"],
-    "gaps": ["<area of improvement>"],
-    "follow_ups": <boolean>
-}}
+0-29
+Incorrect, irrelevant, or fundamentally flawed.
 
-Be fair but honest. Score should reflect true understanding, not just effort.
+------------------------------------------------
+
+2. Relevance (30%)
+
+Evaluate:
+
+- Directly answers the question
+- Stays on topic
+- Uses candidate experience naturally when appropriate
+- Avoids unnecessary or unrelated information
+
+------------------------------------------------
+
+3. Technical Depth (20%)
+
+Evaluate:
+
+- Demonstrates conceptual understanding
+- Explains reasoning
+- Discusses trade-offs when appropriate
+- Shows practical engineering knowledge rather than memorized definitions
+
+------------------------------------------------
+
+4. Communication (10%)
+
+Evaluate:
+
+- Clear structure
+- Logical explanation
+- Appropriate technical terminology
+- Easy to understand
+
+------------------------------------------------
+
+Overall Guidelines
+
+- Consider the candidate's experience level.
+- Reward practical understanding.
+- Give partial credit where deserved.
+- Do not over-score vague or generic responses.
+- Do not under-score concise but technically correct answers.
+
+Return ONLY valid JSON.
+
+{
+    "score": <0-100>,
+    "feedback": "...",
+    "strengths": [
+        "...",
+        "..."
+    ],
+    "gaps": [
+        "...",
+        "..."
+    ],
+    "follow_ups": true
+}
 """
 
 FOLLOW_UP_QUESTION_PROMPT = """
@@ -224,8 +292,6 @@ Return JSON only:
 """
 
 KNOWLEDGE_EVALUATION_PROMPT = """
-You are an expert technical interviewer.
-
 Question:
 {question}
 
