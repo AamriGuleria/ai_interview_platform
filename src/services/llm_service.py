@@ -19,18 +19,20 @@ from logging import getLogger
 from litellm import completion
 
 logger = getLogger(__name__)
+
+class LLMModels:
+    GEMINI_2_5_FLASH = "gemini/gemini-2.5-flash"
+    GEMINI_2_5 = "gemini/gemini-2.5"
+    QWEN_2_5 = "qwen2.5:3b"
+    LLAMA3_2 = "llama3.2:latest"
+    GEMMA2_2B = "ollama/gemma2:2b"
 class LLMService:
     def __init__(self):
         self.client = genai.Client(
             api_key=config.gemini_api_key
         )
         self.OLLAMA_MODEL = "qwen2.5:3b"
-        RESUME_ANALYSIS = "gemini/gemini-2.5-flash"
-        QUESTION_PERSONALIZATION = "gemini/gemini-2.5-flash"
-        QUESTION_EVALUATION = "llama3.2:latest"
-        INTERVIEW_RESULT = "llama3.2:latest"
-        FOLLOWUP = "ollama/gemma2:2b"
-        
+
     @staticmethod
     def chat(
         model,
@@ -64,15 +66,21 @@ class LLMService:
     
     def generate_resume_context(self, prompt: str) -> ResumeContext:
         try:
-            response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-                config={
-                    "response_mime_type": "application/json",
-                    "response_schema": ResumeContext
-                }
+            # response = self.client.models.generate_content(
+            #     model="gemini-2.5-flash",
+            #     contents=prompt,
+            #     config={
+            #         "response_mime_type": "application/json",
+            #         "response_schema": ResumeContext
+            #     }
+            # )
+            # return response.parsed
+            response = LLMService.chat(
+                model=LLMModels.RESUME_ANALYSIS,
+                system_prompt=prompt,
+                # user_prompt=USER_PROMPT
             )
-            return response.parsed
+            return response
         except Exception as e:
             raise RuntimeError(f"Failed to generate resume context: {e}")
 
