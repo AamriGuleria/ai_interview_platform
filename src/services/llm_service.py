@@ -18,7 +18,7 @@ import re
 from logging import getLogger
 
 logger = getLogger(__name__)
-class GeminiService:
+class LLMService:
     def __init__(self):
         self.client = genai.Client(
             api_key=config.gemini_api_key

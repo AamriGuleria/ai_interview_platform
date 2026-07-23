@@ -1,7 +1,7 @@
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 from models.Interview import Question
-from services.llm_service import GeminiService
+from services.llm_service import LLMService
 from logging import getLogger
 import time
 
@@ -12,7 +12,7 @@ BATCH_SIZE = 10
 class QuestionEnrichmentService():
     def __init__(self, db: Session):
         self.db = db
-        self.gemini_service = GeminiService()
+        self.gemini_service = LLMService()
 
     def enrich_question_bank(self):
         questions = self.db.execute(

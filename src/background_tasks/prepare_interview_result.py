@@ -1,6 +1,6 @@
 from database.session_manager import db_manager
 from models.Interview import Interview
-from services.llm_service import GeminiService
+from services.llm_service import LLMService
 
 
 def prepare_interview_report(
@@ -37,7 +37,7 @@ def prepare_interview_result(interview: Interview):
                     "is_follow_up": bool(iq.is_follow_up),
                     "parent_question_id": iq.parent_question_id,
                 })
-            llm_service = GeminiService()
+            llm_service = LLMService()
             result = llm_service.get_interview_evaluation(
                 interview_id=interview.id,
                 interview_context=interview.interview_context or {},

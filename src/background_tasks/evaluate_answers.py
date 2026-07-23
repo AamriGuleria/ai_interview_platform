@@ -2,7 +2,7 @@ from logging import getLogger
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from models.Interview import InterviewQuestion
-from services.llm_service import GeminiService
+from services.llm_service import LLMService
 from database.session_manager import db_manager
 from core.config import config
 
@@ -48,7 +48,7 @@ def generate_follow_up_question(interview_question_id: int):
                 )
                 return
 
-            llm_service = GeminiService()
+            llm_service = LLMService()
             follow_up_payload = llm_service.get_follow_up_question(
                 interview_context=resume_context,
                 original_question=interview_question.personalized_question or interview_question.original_question,
@@ -109,7 +109,7 @@ def evaluate_answer(interview_question_id: int):
                 logger.error(f"No user answer for interview question {interview_question_id}")
                 return
 
-            llm_service = GeminiService()
+            llm_service = LLMService()
             result = llm_service.get_question_evaluation(
                 interview_question_id=interview_question_id,
                 interview_context=resume_context,

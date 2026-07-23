@@ -3,7 +3,7 @@ from sqlalchemy import select
 from models.Interview import Interview, InterviewStatus
 from services.embeddings import create_resume_embeddings
 from services.minio_client import MinioClient
-from services.llm_service import GeminiService
+from services.llm_service import LLMService
 from core.config import config
 from database.session_manager import db_manager
 import tempfile
@@ -52,7 +52,7 @@ def extract_resume_context(interview_id: int):
             interview.resume_text = cleaned_text
             logger.info(f"Resume text extracted for interview {interview_id}")
 
-            gemini_service = GeminiService()
+            gemini_service = LLMService()
             retrieval_prompt.format(
                    interview_target_role=interview.target_role,
                    interview_experience=interview.experience,

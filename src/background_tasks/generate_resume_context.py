@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from models.Interview import Interview, InterviewStatus
-from services.llm_service import GeminiService
+from services.llm_service import LLMService
 from database.session_manager import db_manager
 
 def generate_context(interview_id: int):
@@ -39,7 +39,7 @@ def generate_context(interview_id: int):
 
         Return only structured data.
         """
-        gemini_service = GeminiService()
+        gemini_service = LLMService()
         response = gemini_service.generate_resume_context(prompt)
         interview.interview_context = {
             "candidate_name": response.candidate_name,
