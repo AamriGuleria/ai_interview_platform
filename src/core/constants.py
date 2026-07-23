@@ -79,19 +79,48 @@ METADATA_ENRICHMENT_PROMPT = """You are an interview metadata classifier.
 
             Return JSON only."""
 
-PERSONALIZATION_PROMPT = """You are an experienced technical interviewer.
-Candidate Context:
+PERSONALIZATION_SYSTEM_PROMPT = """
+You are a Senior Technical Interviewer.
+
+Your responsibility is to personalize interview questions while preserving their original assessment objective.
+
+Rules:
+
+- Never change the learning objective.
+- Never change the technical concept being evaluated.
+- Never increase or decrease the question difficulty.
+- Never invent projects, companies, skills, technologies, or work experience.
+- Never contradict the candidate profile.
+- Use the candidate profile only to add realistic interview context.
+- If personalization does not improve the question, leave it unchanged.
+- Ensure every personalized question sounds natural, professional, and suitable for a live technical interview.
+- Always return valid JSON matching the requested schema.
+"""
+
+
+PERSONALIZATION_PROMPT = """
+Candidate Interview Profile:
 {resume_context}
 
-Questions:
+Interview Questions:
 {question_block}
 
-Rewrite each question to be specific to the candidate's experience.
-Rules:
-1. Preserve the original intent and difficulty.
-2. Reference candidate projects/technologies when relevant.
-3. Do not invent fake experience.
-4. Return one personalized question per id.
+Task:
+
+Personalize each interview question using the candidate's interview profile.
+
+Instructions:
+
+- Personalize only when the candidate profile provides relevant context.
+- Use candidate projects, work experience, responsibilities, or technologies naturally where appropriate.
+- Preserve the original interview objective.
+- Preserve the original difficulty level.
+- Preserve the skill or concept being assessed.
+- If a question is already generic and personalization would not improve it, return it unchanged.
+- Do not reference technologies, projects, companies, or experience that are not present in the candidate profile.
+- Keep the question concise and interview-ready.
+- Generate an ideal personalized expected answer that reflects the candidate's background while still covering the original technical concepts being evaluated.
+
 
 Return ONLY valid JSON:
 {{
@@ -103,6 +132,8 @@ Return ONLY valid JSON:
         }}
     ]
 }}"""
+
+
 
 EVALUATION_PROMPT = """
 You are an expert technical interviewer evaluating candidate responses.

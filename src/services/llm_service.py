@@ -1,7 +1,16 @@
 from google import genai
 from schemas.interview_schema import EvaluationResult, InterviewResponse, PersonalizedQuestionBatch, QuestionMetadataBatch, ResumeContext, QuestionMetadata
 from core.config import config
-from core.constants import INTERVIEW_RESULT_PROMPT, KNOWLEDGE_EVALUATION_PROMPT, METADATA_ENRICHMENT_PROMPT, PERSONALIZATION_PROMPT, EVALUATION_PROMPT, FOLLOW_UP_QUESTION_PROMPT
+from core.constants import (
+    INTERVIEW_RESULT_PROMPT,
+    KNOWLEDGE_EVALUATION_PROMPT,
+    METADATA_ENRICHMENT_PROMPT,
+    PERSONALIZATION_PROMPT,
+    EVALUATION_PROMPT,
+    FOLLOW_UP_QUESTION_PROMPT,
+    PERSONALIZATION_SYSTEM_PROMPT
+)
+
 from ollama import chat
 import json
 import re
@@ -152,7 +161,7 @@ class GeminiService:
             )
             response = chat(
                 model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}, {"role":"system", "content":PERSONALIZATION_SYSTEM_PROMPT}]
             )
             raw = response["message"]["content"]
             logger.info(f"Personalization raw response: {raw[:200]}")
