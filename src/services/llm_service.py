@@ -7,6 +7,7 @@ from core.constants import (
     METADATA_ENRICHMENT_PROMPT,
     PERSONALIZATION_PROMPT,
     EVALUATION_SYSTEM_PROMPT,
+    FOLLOW_UP_SYSTEM_PROMPT,
     EVALUATION_PROMPT,
     FOLLOW_UP_QUESTION_PROMPT,
     PERSONALIZATION_SYSTEM_PROMPT
@@ -253,10 +254,17 @@ class LLMService:
                     expected_answer=expected_answer,
                     user_answer=user_answer
                 )
-            response = chat(
-                model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt},{"role":"system","content":EVALUATION_SYSTEM_PROMPT}]
+            response = LLMService.chat(
+                model=LLMModels.GEMMA2_2B,
+                system_prompt=EVALUATION_SYSTEM_PROMPT,
+                user_prompt=prompt,
+                response_format=EvaluationResult
+                # messages=[{"role": "user", "content": prompt},{"role":"system","content":EVALUATION_SYSTEM_PROMPT}]
             )
+            # response = chat(
+            #     model=self.OLLAMA_MODEL,
+            #     messages=[{"role": "user", "content": prompt},{"role":"system","content":EVALUATION_SYSTEM_PROMPT}]
+            # )
             raw = response["message"]["content"]
             logger.info(f"Raw ollama response: {raw[:200]}")
             json_data = self._parse_ollama_json(raw)
@@ -280,9 +288,15 @@ class LLMService:
                 expected_answer=expected_answer or "",
                 user_answer=user_answer,
             )
-            response = chat(
-                model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+            # response = chat(
+            #     model=self.OLLAMA_MODEL,
+            #     messages=[{"role": "user", "content": prompt}]
+            # )
+            response = LLMService.chat(
+                model=LLMModels.LLAMA3_2,
+                system_prompt=FOLLOW_UP_SYSTEM_PROMPT,
+                user_prompt=prompt
+                # messages=[{"role": "user", "content": prompt}]
             )
             raw = response["message"]["content"]
             logger.info(f"Follow-up prompt raw response: {raw[:200]}")
