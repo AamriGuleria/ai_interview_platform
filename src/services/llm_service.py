@@ -2,7 +2,8 @@ from google import genai
 from schemas.interview_schema import EvaluationResult, InterviewResponse, PersonalizedQuestionBatch, QuestionMetadataBatch, ResumeContext, QuestionMetadata
 from core.config import config
 from core.constants import (
-    INTERVIEW_RESULT_PROMPT,
+    INTERVIEW_RESULT_SYSTEM_PROMPT,
+    INTERVIEW_RESULT_USER_PROMPT,
     KNOWLEDGE_EVALUATION_PROMPT,
     METADATA_ENRICHMENT_PROMPT,
     PERSONALIZATION_PROMPT,
@@ -323,13 +324,16 @@ class LLMService:
                 else:
                     serialized_results.append(result)
 
-            prompt = INTERVIEW_RESULT_PROMPT.format(
+            prompt = INTERVIEW_RESULT_USER_PROMPT.format(
                 interview_context=json.dumps(interview_context, indent=2),
                 evaluation_data=json.dumps(serialized_results, indent=2)
             )
-            response = chat(
-                model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+            response = LLMService.chat(
+                model=LLMModels.LLAMA3_2,
+                system_prompt=INTERVIEW_RESULT_SYSTEM_PROMPT,
+                user_prompt=prompt,
+                response_format=InterviewResponse
+                # messages=[{"role": "user", "content": prompt}]
             )
             raw = response["message"]["content"]
             logger.info(f"Raw ollama response: {raw[:200]}")
