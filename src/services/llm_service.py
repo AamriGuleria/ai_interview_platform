@@ -1,31 +1,86 @@
 from google import genai
 from schemas.interview_schema import EvaluationResult, InterviewResponse, PersonalizedQuestionBatch, QuestionMetadataBatch, ResumeContext, QuestionMetadata
 from core.config import config
-from core.constants import INTERVIEW_RESULT_PROMPT, KNOWLEDGE_EVALUATION_PROMPT, METADATA_ENRICHMENT_PROMPT, PERSONALIZATION_PROMPT, EVALUATION_PROMPT, FOLLOW_UP_QUESTION_PROMPT
+from core.constants import (
+    INTERVIEW_RESULT_PROMPT,
+    KNOWLEDGE_EVALUATION_PROMPT,
+    METADATA_ENRICHMENT_PROMPT,
+    PERSONALIZATION_PROMPT,
+    EVALUATION_SYSTEM_PROMPT,
+    EVALUATION_PROMPT,
+    FOLLOW_UP_QUESTION_PROMPT,
+    PERSONALIZATION_SYSTEM_PROMPT
+)
+
 from ollama import chat
 import json
 import re
 from logging import getLogger
+from litellm import completion
 
 logger = getLogger(__name__)
-class GeminiService:
+
+class LLMModels:
+    GEMINI_2_5_FLASH = "gemini/gemini-2.5-flash"
+    GEMINI_2_5 = "gemini/gemini-2.5"
+    QWEN_2_5 = "qwen2.5:3b"
+    LLAMA3_2 = "llama3.2:latest"
+    GEMMA2_2B = "ollama/gemma2:2b"
+class LLMService:
     def __init__(self):
         self.client = genai.Client(
             api_key=config.gemini_api_key
         )
         self.OLLAMA_MODEL = "qwen2.5:3b"
 
+    @staticmethod
+    def chat(
+        model,
+        system_prompt,
+        user_prompt,
+        temperature=0.2,
+        response_format=None
+    ):
+
+        messages = [
+            {
+                "role": "system",
+                "content": system_prompt
+            },
+            {
+                "role": "user",
+                "content": user_prompt
+            }
+        ]
+
+        kwargs = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+        }
+
+        if response_format:
+            kwargs["response_format"] = response_format
+
+        return completion(**kwargs)
+    
     def generate_resume_context(self, prompt: str) -> ResumeContext:
         try:
-            response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-                config={
-                    "response_mime_type": "application/json",
-                    "response_schema": ResumeContext
-                }
+            # response = self.client.models.generate_content(
+            #     model="gemini-2.5-flash",
+            #     contents=prompt,
+            #     config={
+            #         "response_mime_type": "application/json",
+            #         "response_schema": ResumeContext
+            #     }
+            # )
+            # return response.parsed
+            response = LLMService.chat(
+                model=LLMModels.RESUME_ANALYSIS,
+                system_prompt=prompt,
+                # user_prompt=USER_PROMPT
             )
-            return response.parsed
+            return response
         except Exception as e:
             raise RuntimeError(f"Failed to generate resume context: {e}")
 
@@ -152,7 +207,7 @@ class GeminiService:
             )
             response = chat(
                 model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}, {"role":"system", "content":PERSONALIZATION_SYSTEM_PROMPT}]
             )
             raw = response["message"]["content"]
             logger.info(f"Personalization raw response: {raw[:200]}")
@@ -197,7 +252,7 @@ class GeminiService:
                 )
             response = chat(
                 model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt},{"role":"system","content":EVALUATION_SYSTEM_PROMPT}]
             )
             raw = response["message"]["content"]
             logger.info(f"Raw ollama response: {raw[:200]}")

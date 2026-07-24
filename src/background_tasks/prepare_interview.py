@@ -2,7 +2,7 @@ import logging
 from sqlalchemy import select
 from models.Interview import Interview, InterviewQuestion, InterviewStatus
 from services.embeddings import retrieve_questions_from_embedding
-from services.llm_service import GeminiService
+from services.llm_service import LLMService
 from database.session_manager import db_manager
 
 logger = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ def prepare_interview(interview_id: int):
                 for q in questions_to_personalize
             ]
 
-            gemini_service = GeminiService()
+            gemini_service = LLMService()
             for i in range(
                 0,
                 len(personalizable_iqs),
