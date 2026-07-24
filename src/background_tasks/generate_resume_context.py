@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from core.constants import RESUME_CONTEXT_SYSTEM_PROMPT, RESUME_CONTEXT_USER_PROMPT
 from models.Interview import Interview, InterviewStatus
 from services.llm_service import LLMService
 from database.session_manager import db_manager
@@ -11,36 +12,37 @@ def generate_context(interview_id: int):
         ).scalars().one_or_none()
         if not interview:
             raise Exception("Interview not found")
-        prompt = f"""
-        You are an expert technical recruiter.
+        # prompt = f"""
+        # You are an expert technical recruiter.
 
-        Analyze the following candidate.
+        # Analyze the following candidate.
 
-        Target Role:
-        {interview.target_role}
+        # Target Role:
+        # {interview.target_role}
 
-        Experience:
-        {interview.experience}
+        # Experience:
+        # {interview.experience}
 
-        Declared Skills:
-        {interview.skills}
+        # Declared Skills:
+        # {interview.skills}
 
-        Resume:
-        {interview.resume_text}
+        # Resume:
+        # {interview.resume_text}
 
-        Instructions:
+        # Instructions:
 
-        1. Extract technical skills.
-        2. Identify projects.
-        3. Identify strongest areas.
-        4. Suggest interview topics.
-        5. Decide interview difficulty.
-        6. Create a recruiter-style summary.
+        # 1. Extract technical skills.
+        # 2. Identify projects.
+        # 3. Identify strongest areas.
+        # 4. Suggest interview topics.
+        # 5. Decide interview difficulty.
+        # 6. Create a recruiter-style summary.
 
-        Return only structured data.
-        """
+        # Return only structured data.
+        # """
+
         gemini_service = LLMService()
-        response = gemini_service.generate_resume_context(prompt)
+        response = gemini_service.generate_resume_context(RESUME_CONTEXT_USER_PROMPT, RESUME_CONTEXT_SYSTEM_PROMPT)
         interview.interview_context = {
             "candidate_name": response.candidate_name,
             "years_of_experience": response.years_of_experience,
