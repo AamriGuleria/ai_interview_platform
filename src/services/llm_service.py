@@ -205,9 +205,12 @@ class LLMService:
                 resume_context=json.dumps(resume_context, indent=2),
                 question_block=question_block
             )
-            response = chat(
-                model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}, {"role":"system", "content":PERSONALIZATION_SYSTEM_PROMPT}]
+            response = LLMService.chat(
+                model=LLMModels.LLAMA3_2,
+                system_prompt = PERSONALIZATION_SYSTEM_PROMPT,
+                user_prompt = prompt,
+                response_format=PersonalizedQuestionBatch
+                # messages=[{"role": "user", "content": prompt}, {"role":"system", "content":PERSONALIZATION_SYSTEM_PROMPT}]
             )
             raw = response["message"]["content"]
             logger.info(f"Personalization raw response: {raw[:200]}")
