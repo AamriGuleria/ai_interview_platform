@@ -64,7 +64,7 @@ class LLMService:
 
         return completion(**kwargs)
     
-    def generate_resume_context(self, prompt: str) -> ResumeContext:
+    def generate_resume_context(self, prompt: str, system_prompt: str) -> ResumeContext:
         try:
             # response = self.client.models.generate_content(
             #     model="gemini-2.5-flash",
@@ -77,8 +77,8 @@ class LLMService:
             # return response.parsed
             response = LLMService.chat(
                 model=LLMModels.RESUME_ANALYSIS,
-                system_prompt=prompt,
-                # user_prompt=USER_PROMPT
+                system_prompt=system_prompt,
+                user_prompt=prompt
             )
             return response
         except Exception as e:
