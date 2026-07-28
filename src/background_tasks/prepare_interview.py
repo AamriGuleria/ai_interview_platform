@@ -66,7 +66,7 @@ def prepare_interview(interview_id: int):
             questions = retrieve_questions_from_embedding(
                 db,
                 interview.resume_embedding,
-                limit=30
+                limit=100
             )
             logger.info(f"Retrieved {len(questions)} questions for interview {interview_id}")
             questions_to_personalize = []
