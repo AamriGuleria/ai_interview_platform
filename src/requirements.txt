@@ -24,4 +24,4 @@ pgvector
 gTTS 
 click>=7.1,<8.2
 faster-whisper
-litellm
+litellm==1.75.0
