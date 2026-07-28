@@ -10,7 +10,7 @@ import tempfile
 import fitz
 import os
 import re
-from core.constants import RESUME_ANALYSIS_PROMPT as retrieval_prompt
+from core.constants import RESUME_ANALYSIS_USER_PROMPT, RESUME_ANALYSIS_SYSTEM_PROMPT 
 
 logger = logging.getLogger(__name__)
 
@@ -53,12 +53,12 @@ def extract_resume_context(interview_id: int):
             logger.info(f"Resume text extracted for interview {interview_id}")
 
             gemini_service = LLMService()
-            retrieval_prompt.format(
+            RESUME_ANALYSIS_USER_PROMPT.format(
                    interview_target_role=interview.target_role,
                    interview_experience=interview.experience,
                    interview_skills=interview.skills,
                    interview_resume=cleaned_text)
-            response = gemini_service.generate_resume_context(retrieval_prompt)
+            response = gemini_service.generate_resume_context(RESUME_ANALYSIS_USER_PROMPT, RESUME_ANALYSIS_SYSTEM_PROMPT)
             logger.info(f"LLM context generated for interview {interview_id}")
 
             interview.interview_context = {
