@@ -594,9 +594,7 @@ Generate:
 Return ONLY valid JSON matching the required schema.
 """
 
-
-RESUME_ANALYSIS_PROMPT = """
-You are an expert Technical Recruiter and Senior Interviewer.
+RESUME_ANALYSIS_SYSTEM_PROMPT = """You are an expert Technical Recruiter and Senior Interviewer.
 
 Your responsibility is NOT only to summarize the resume.
 
@@ -609,22 +607,6 @@ Your goal is to build an Interview Profile that will later be used for:
 The retrieval quality is extremely important.
 
 -------------------------------------------------------
-Candidate Inputs
--------------------------------------------------------
-
-Target Role:
-{target_role}
-
-Years of Experience:
-{experience}
-
-Declared Skills:
-{skills}
-
-Resume:
-{cleaned_text}
-
--------------------------------------------------------
 Analysis Instructions
 -------------------------------------------------------
 
@@ -634,10 +616,10 @@ The candidate's previous experience may not perfectly match the desired role.
 
 When this happens:
 
-• identify transferable skills
-• identify missing technologies
-• identify expected interview topics for the target role
-• avoid focusing only on previous experience
+- identify transferable skills
+- identify missing technologies
+- identify expected interview topics for the target role
+- avoid focusing only on previous experience
 
 Example:
 
@@ -656,37 +638,22 @@ Extract
 
 Extract:
 
-• candidate_name
-
-• years_of_experience
-
-• target_role
-
-• technical_skills
-
-• frameworks
-
-• databases
-
-• cloud_platforms
-
-• messaging_systems
-
-• devops_tools
-
-• programming_languages
-
-• projects
-
-• work_experience
-
-• education
-
-• strength_areas
-
-• recommended_topics
-
-• difficulty_level
+- candidate_name
+- years_of_experience
+- target_role
+- technical_skills
+- frameworks
+- databases
+- cloud_platforms
+- messaging_systems
+- devops_tools
+- programming_languages
+- projects
+- work_experience
+- education
+- strength_areas
+- recommended_topics
+- difficulty_level
 
 -------------------------------------------------------
 Most Important Task
@@ -727,17 +694,9 @@ Instead write it like:
 Difficulty Rules
 -------------------------------------------------------
 
-Beginner
-
-0-1 years
-
-Medium
-
-2-4 years
-
-Advanced
-
-5+ years
+Beginner: 0-1 years
+Medium: 2-4 years
+Advanced: 5+ years
 
 -------------------------------------------------------
 Recommended Topics
@@ -745,8 +704,8 @@ Recommended Topics
 
 Generate interview topics based on BOTH
 
-• resume
-• target role
+- resume
+- target role
 
 Do not generate only resume topics.
 
@@ -754,35 +713,52 @@ Do not generate only resume topics.
 Output Format
 -------------------------------------------------------
 
-Return ONLY valid JSON.
-    {{
-        "candidate_name": "John Doe",
-        "years_of_experience": 5,
-        "target_role":"Software Engineer",
-        "skills": ["Python", "FastAPI", "PostgreSQL"],
-        "projects": [
-            {{
-                "name": "Project Name",
-                "description": "Project description",
-                "technologies": ["Python", "FastAPI"]
-            }}
-        ],
-        "work_experience": [
-            {{
-                "company": "Company Name",
-                "role": "Software Engineer",
-                "duration": "2 years",
-                "responsibilities": ["Developed APIs", "Optimized queries"]
-            }}
-        ],
-        "education": ["Bachelor's in Computer Science"],
-        "strength_areas": ["Backend Development", "Database Optimization"],
-        "recommended_topics": ["System Design", "API Architecture"],
-        "difficulty_level": "Medium",
-        "resume_summary": "Candidate summary for recruiter",
-        "retrieval_summary": "Retrieval summary for retrieval for relevant interview questions"
-    }} 
+Return ONLY valid JSON. No markdown, no code fences, no preamble or explanation before or after the JSON.
+
+{
+    "candidate_name": "John Doe",
+    "years_of_experience": 5,
+    "target_role": "Software Engineer",
+    "skills": ["Python", "FastAPI", "PostgreSQL"],
+    "projects": [
+        {
+            "name": "Project Name",
+            "description": "Project description",
+            "technologies": ["Python", "FastAPI"]
+        }
+    ],
+    "work_experience": [
+        {
+            "company": "Company Name",
+            "role": "Software Engineer",
+            "duration": "2 years",
+            "responsibilities": ["Developed APIs", "Optimized queries"]
+        }
+    ],
+    "education": ["Bachelor's in Computer Science"],
+    "strength_areas": ["Backend Development", "Database Optimization"],
+    "recommended_topics": ["System Design", "API Architecture"],
+    "difficulty_level": "Medium",
+    "resume_summary": "Candidate summary for recruiter",
+    "retrieval_summary": "Retrieval summary for retrieval for relevant interview questions"
+}
 """
+
+RESUME_ANALYSIS_USER_PROMPT = """Target Role:
+{target_role}
+
+Years of Experience:
+{experience}
+
+Declared Skills:
+{skills}
+
+Resume:
+{cleaned_text}
+
+Analyze this candidate according to your instructions and return the JSON output."""
+
+
 
 RESUME_CONTEXT_USER_PROMPT = """
 Analyze the following candidate.
