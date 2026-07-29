@@ -3,13 +3,14 @@ from sqlalchemy import select
 from models.Interview import Interview, InterviewStatus
 from services.embeddings import create_resume_embeddings
 from services.minio_client import MinioClient
-from services.llm_service import GeminiService
+from services.llm_service import LLMService
 from core.config import config
 from database.session_manager import db_manager
 import tempfile
 import fitz
 import os
 import re
+from core.constants import RESUME_ANALYSIS_USER_PROMPT, RESUME_ANALYSIS_SYSTEM_PROMPT 
 
 logger = logging.getLogger(__name__)
 
@@ -51,58 +52,13 @@ def extract_resume_context(interview_id: int):
             interview.resume_text = cleaned_text
             logger.info(f"Resume text extracted for interview {interview_id}")
 
-            # Step 2: Call LLM
-            prompt = f"""
-            You are an expert technical recruiter. Analyze the candidate and return ONLY valid JSON.
-            
-            Target Role: {interview.target_role}
-            Experience: {interview.experience}
-            Declared Skills: {interview.skills}
-            Resume: {cleaned_text}
-            
-            Return JSON in this exact format:
-            {{
-                "candidate_name": "John Doe",
-                "years_of_experience": 5,
-                "skills": ["Python", "FastAPI", "PostgreSQL"],
-                "projects": [
-                    {{
-                        "name": "Project Name",
-                        "description": "Project description",
-                        "technologies": ["Python", "FastAPI"]
-                    }}
-                ],
-                "work_experience": [
-                    {{
-                        "company": "Company Name",
-                        "role": "Software Engineer",
-                        "duration": "2 years",
-                        "responsibilities": ["Developed APIs", "Optimized queries"]
-                    }}
-                ],
-                "education": ["Bachelor's in Computer Science"],
-                "strength_areas": ["Backend Development", "Database Optimization"],
-                "recommended_topics": ["System Design", "API Architecture"],
-                "difficulty_level": "Medium",
-                "resume_summary": "Candidate summary for recruiter"
-            }}
-            
-            Rules:
-            - Extract candidate name from resume
-            - Calculate years of experience from work history
-            - List all technical skills found
-            - Extract 2-3 key projects with descriptions
-            - Include work experience with responsibilities
-            - Add education information
-            - Identify 3-4 strength areas
-            - Suggest 5-6 interview topics
-            - Set difficulty: Beginner/Medium/Advanced
-            - Write recruiter summary (2-3 sentences)
-            
-            Return JSON only.
-            """
-            gemini_service = GeminiService()
-            response = gemini_service.generate_resume_context(prompt)
+            gemini_service = LLMService()
+            RESUME_ANALYSIS_USER_PROMPT.format(
+                   interview_target_role=interview.target_role,
+                   interview_experience=interview.experience,
+                   interview_skills=interview.skills,
+                   interview_resume=cleaned_text)
+            response = gemini_service.generate_resume_context(RESUME_ANALYSIS_USER_PROMPT, RESUME_ANALYSIS_SYSTEM_PROMPT)
             logger.info(f"LLM context generated for interview {interview_id}")
 
             interview.interview_context = {
@@ -114,11 +70,14 @@ def extract_resume_context(interview_id: int):
                 "education": response.education,
                 "strength_areas": response.strength_areas,
                 "recommended_topics": response.recommended_topics,
-                "difficulty_level": response.difficulty_level
+                "difficulty_level": response.difficulty_level,
+                "target_role": response.target_role
             }
             interview.resume_summary = response.resume_summary
+            interview.retrieval_summary = response.retrieval_summary
             reponse_summary = response.resume_summary
-            resume_embedding = create_resume_embeddings(reponse_summary)
+            retrieval_summary = response.retrieval_summary
+            resume_embedding = create_resume_embeddings(retrieval_summary)
             interview.resume_embedding = resume_embedding
             interview.status = InterviewStatus.RESUME_READY.value
             db.add(interview)

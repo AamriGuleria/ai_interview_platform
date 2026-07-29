@@ -1,31 +1,88 @@
 from google import genai
 from schemas.interview_schema import EvaluationResult, InterviewResponse, PersonalizedQuestionBatch, QuestionMetadataBatch, ResumeContext, QuestionMetadata
 from core.config import config
-from core.constants import INTERVIEW_RESULT_PROMPT, KNOWLEDGE_EVALUATION_PROMPT, METADATA_ENRICHMENT_PROMPT, PERSONALIZATION_PROMPT, EVALUATION_PROMPT, FOLLOW_UP_QUESTION_PROMPT
+from core.constants import (
+    INTERVIEW_RESULT_SYSTEM_PROMPT,
+    INTERVIEW_RESULT_USER_PROMPT,
+    KNOWLEDGE_EVALUATION_PROMPT,
+    METADATA_ENRICHMENT_PROMPT,
+    PERSONALIZATION_PROMPT,
+    EVALUATION_SYSTEM_PROMPT,
+    FOLLOW_UP_SYSTEM_PROMPT,
+    EVALUATION_PROMPT,
+    FOLLOW_UP_QUESTION_PROMPT,
+    PERSONALIZATION_SYSTEM_PROMPT
+)
+
 from ollama import chat
 import json
 import re
 from logging import getLogger
+from litellm import completion
 
 logger = getLogger(__name__)
-class GeminiService:
+
+class LLMModels:
+    GEMINI_2_5_FLASH = "gemini/gemini-2.5-flash"
+    GEMINI_2_5 = "gemini/gemini-2.5"
+    QWEN_2_5 = "qwen2.5:3b"
+    LLAMA3_2 = "llama3.2:latest"
+    GEMMA2_2B = "ollama/gemma2:2b"
+class LLMService:
     def __init__(self):
         self.client = genai.Client(
             api_key=config.gemini_api_key
         )
         self.OLLAMA_MODEL = "qwen2.5:3b"
 
-    def generate_resume_context(self, prompt: str) -> ResumeContext:
+    @staticmethod
+    def chat(
+        model,
+        system_prompt,
+        user_prompt,
+        temperature=0.2,
+        response_format=None
+    ):
+
+        messages = [
+            {
+                "role": "system",
+                "content": system_prompt
+            },
+            {
+                "role": "user",
+                "content": user_prompt
+            }
+        ]
+
+        kwargs = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+        }
+
+        if response_format:
+            kwargs["response_format"] = response_format
+
+        return completion(**kwargs)
+    
+    def generate_resume_context(self, prompt: str, system_prompt: str) -> ResumeContext:
         try:
-            response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-                config={
-                    "response_mime_type": "application/json",
-                    "response_schema": ResumeContext
-                }
+            # response = self.client.models.generate_content(
+            #     model="gemini-2.5-flash",
+            #     contents=prompt,
+            #     config={
+            #         "response_mime_type": "application/json",
+            #         "response_schema": ResumeContext
+            #     }
+            # )
+            # return response.parsed
+            response = LLMService.chat(
+                model=LLMModels.RESUME_ANALYSIS,
+                system_prompt=system_prompt,
+                user_prompt=prompt
             )
-            return response.parsed
+            return response
         except Exception as e:
             raise RuntimeError(f"Failed to generate resume context: {e}")
 
@@ -150,9 +207,12 @@ class GeminiService:
                 resume_context=json.dumps(resume_context, indent=2),
                 question_block=question_block
             )
-            response = chat(
-                model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+            response = LLMService.chat(
+                model=LLMModels.LLAMA3_2,
+                system_prompt = PERSONALIZATION_SYSTEM_PROMPT,
+                user_prompt = prompt,
+                response_format=PersonalizedQuestionBatch
+                # messages=[{"role": "user", "content": prompt}, {"role":"system", "content":PERSONALIZATION_SYSTEM_PROMPT}]
             )
             raw = response["message"]["content"]
             logger.info(f"Personalization raw response: {raw[:200]}")
@@ -195,10 +255,17 @@ class GeminiService:
                     expected_answer=expected_answer,
                     user_answer=user_answer
                 )
-            response = chat(
-                model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+            response = LLMService.chat(
+                model=LLMModels.GEMMA2_2B,
+                system_prompt=EVALUATION_SYSTEM_PROMPT,
+                user_prompt=prompt,
+                response_format=EvaluationResult
+                # messages=[{"role": "user", "content": prompt},{"role":"system","content":EVALUATION_SYSTEM_PROMPT}]
             )
+            # response = chat(
+            #     model=self.OLLAMA_MODEL,
+            #     messages=[{"role": "user", "content": prompt},{"role":"system","content":EVALUATION_SYSTEM_PROMPT}]
+            # )
             raw = response["message"]["content"]
             logger.info(f"Raw ollama response: {raw[:200]}")
             json_data = self._parse_ollama_json(raw)
@@ -222,9 +289,15 @@ class GeminiService:
                 expected_answer=expected_answer or "",
                 user_answer=user_answer,
             )
-            response = chat(
-                model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+            # response = chat(
+            #     model=self.OLLAMA_MODEL,
+            #     messages=[{"role": "user", "content": prompt}]
+            # )
+            response = LLMService.chat(
+                model=LLMModels.LLAMA3_2,
+                system_prompt=FOLLOW_UP_SYSTEM_PROMPT,
+                user_prompt=prompt
+                # messages=[{"role": "user", "content": prompt}]
             )
             raw = response["message"]["content"]
             logger.info(f"Follow-up prompt raw response: {raw[:200]}")
@@ -251,13 +324,16 @@ class GeminiService:
                 else:
                     serialized_results.append(result)
 
-            prompt = INTERVIEW_RESULT_PROMPT.format(
+            prompt = INTERVIEW_RESULT_USER_PROMPT.format(
                 interview_context=json.dumps(interview_context, indent=2),
                 evaluation_data=json.dumps(serialized_results, indent=2)
             )
-            response = chat(
-                model=self.OLLAMA_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+            response = LLMService.chat(
+                model=LLMModels.LLAMA3_2,
+                system_prompt=INTERVIEW_RESULT_SYSTEM_PROMPT,
+                user_prompt=prompt,
+                response_format=InterviewResponse
+                # messages=[{"role": "user", "content": prompt}]
             )
             raw = response["message"]["content"]
             logger.info(f"Raw ollama response: {raw[:200]}")

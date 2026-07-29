@@ -2,21 +2,12 @@ import logging
 from sqlalchemy import select
 from models.Interview import Interview, InterviewQuestion, InterviewStatus
 from services.embeddings import retrieve_questions_from_embedding
-from services.llm_service import GeminiService
+from services.llm_service import LLMService
 from database.session_manager import db_manager
 
 logger = logging.getLogger(__name__)
 
 PERSONALIZATION_BATCH_SIZE = 5
-# RESUME_TECH_CATEGORIES = {
-#     "Python",
-#     "PostgreSQL",
-#     "Docker",
-#     "RabbitMQ",
-#     "FastAPI",
-#     "SQL",
-#     "AWS"
-# }
 PERSONALIZABLE_TYPES = {
     "Behavioral",
     "Project",
@@ -66,7 +57,7 @@ def prepare_interview(interview_id: int):
             questions = retrieve_questions_from_embedding(
                 db,
                 interview.resume_embedding,
-                limit=30
+                limit=100
             )
             logger.info(f"Retrieved {len(questions)} questions for interview {interview_id}")
             questions_to_personalize = []
@@ -85,6 +76,8 @@ def prepare_interview(interview_id: int):
                     original_expected_answer=question.expected_answer,
                     question_id=question.id,
                     display_order=index + 1,
+                    distance=question.distance,
+                    similarity=question.similarity
                 )
                 db.add(iq)
                 db.flush()
@@ -97,7 +90,7 @@ def prepare_interview(interview_id: int):
                 for q in questions_to_personalize
             ]
 
-            gemini_service = GeminiService()
+            gemini_service = LLMService()
             for i in range(
                 0,
                 len(personalizable_iqs),
