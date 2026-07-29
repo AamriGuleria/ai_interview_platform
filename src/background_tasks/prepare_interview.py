@@ -8,15 +8,6 @@ from database.session_manager import db_manager
 logger = logging.getLogger(__name__)
 
 PERSONALIZATION_BATCH_SIZE = 5
-# RESUME_TECH_CATEGORIES = {
-#     "Python",
-#     "PostgreSQL",
-#     "Docker",
-#     "RabbitMQ",
-#     "FastAPI",
-#     "SQL",
-#     "AWS"
-# }
 PERSONALIZABLE_TYPES = {
     "Behavioral",
     "Project",
