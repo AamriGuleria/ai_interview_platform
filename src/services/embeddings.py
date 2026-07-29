@@ -70,3 +70,14 @@ def retrieve_questions_from_embedding(
     except Exception as e:
         logger.error(f"Error retrieving questions from embedding: {e}")
         return []
+
+
+def filter_questions(
+    questions: list,
+    interview_context: dict
+):
+    try:
+        pass
+    except Exception as e:
+        logger.error(f"Error filtering questions: {e}")
+        return []
