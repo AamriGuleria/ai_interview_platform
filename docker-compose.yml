@@ -59,6 +59,20 @@ services:
 
     command: server /data --console-address ":9001"
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    ports:
+      - "5672:5672"    # AMQP port — used by Celery to connect
+      - "15672:15672"  # Management UI — http://localhost:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
   postgres_data:
   minio_data:
+  rabbitmq_data:
