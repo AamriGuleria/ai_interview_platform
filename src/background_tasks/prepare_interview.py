@@ -62,7 +62,12 @@ def prepare_interview(interview_id: int):
             )
 
             # Further filtering and re-ranking
-
+            # NEXT STEP: re-ranking
+            # questions = rerank_questions(
+            #     questions,
+            #     role_weight=0.70,
+            #     resume_weight=0.30,
+            # )
 
             logger.info(f"Retrieved {len(questions)} questions for interview {interview_id}")
             questions_to_personalize = []
