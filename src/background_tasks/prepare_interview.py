@@ -59,6 +59,10 @@ def prepare_interview(interview_id: int):
                 interview.resume_embedding,
                 limit=100
             )
+
+            # Further filtering and re-ranking
+
+
             logger.info(f"Retrieved {len(questions)} questions for interview {interview_id}")
             questions_to_personalize = []
             question_to_iq = {}
