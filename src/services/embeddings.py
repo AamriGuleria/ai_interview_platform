@@ -50,25 +50,39 @@ def create_resume_embeddings(retrieval_summary: text, resume_summary: text):
 def retrieve_questions_from_embedding(
     db: Session,
     resume_embedding,
+    retrieval_embedding,
     limit=50
 ):
     try:
-        distance =  Question.embedding.cosine_distance(resume_embedding)
-        results =  (
+        resume_distance = Question.embedding.cosine_distance(
+            resume_embedding
+        )
+
+        retrieval_distance = Question.embedding.cosine_distance(
+            retrieval_embedding
+        )
+        # distance =  Question.embedding.cosine_distance(resume_embedding)
+        results = (
             db.execute(
-                select(Question, distance)
+                select(
+                    Question,
+                    resume_distance.label("resume_distance"),
+                    retrieval_distance.label("retrieval_distance")
+                )
                 .where(
                     Question.embedding.is_not(None)
                 )
-                .order_by(distance)
+                .order_by(retrieval_distance)
                 .limit(limit)
             )
             .all()
         )
         question_results = []
-        for question, dist_value in results:
-            question.distance = float(dist_value)
-            question.similarity = 1 - float(dist_value)
+        for question, resume_dist, retrieval_dist in results:
+            question.resume_distance = float(resume_dist)
+            question.resume_similarity = 1 - float(resume_dist)
+            question.retrieval_distance = float(retrieval_dist)
+            question.retrieval_similarity = 1 - float(retrieval_dist)
             question_results.append(question)
         return question_results
     except Exception as e:

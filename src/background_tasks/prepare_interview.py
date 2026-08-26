@@ -57,6 +57,7 @@ def prepare_interview(interview_id: int):
             questions = retrieve_questions_from_embedding(
                 db,
                 interview.resume_embedding,
+                interview.retrieval_embedding,
                 limit=100
             )
 
@@ -80,8 +81,10 @@ def prepare_interview(interview_id: int):
                     original_expected_answer=question.expected_answer,
                     question_id=question.id,
                     display_order=index + 1,
-                    distance=question.distance,
-                    similarity=question.similarity
+                    resume_distance=question.resume_distance,
+                    resume_similarity=question.resume_similarity,
+                    retrieval_distance=question.retrieval_distance,
+                    retrieval_similarity=question.retrieval_similarity
                 )
                 db.add(iq)
                 db.flush()
