@@ -69,6 +69,10 @@ class Interview(Base):
         Vector(384),
         nullable=True
     )
+    retrieval_embedding = Column(
+        Vector(384),
+        nullable=True
+    )
     status = Column(String(50))
     interview_context = Column(JSONB, nullable = True)
     resume_text = Column(Text, nullable=True)

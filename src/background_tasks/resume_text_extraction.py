@@ -79,8 +79,9 @@ def extract_resume_context(interview_id: int):
             interview.retrieval_summary = response.retrieval_summary
             reponse_summary = response.resume_summary
             retrieval_summary = response.retrieval_summary
-            resume_embedding = create_resume_embeddings(retrieval_summary)
+            resume_embedding, retrieval_embedding = create_resume_embeddings(retrieval_summary, reponse_summary)
             interview.resume_embedding = resume_embedding
+            interview.retrieval_embedding = retrieval_embedding
             interview.status = InterviewStatus.RESUME_READY.value
             db.add(interview)
 

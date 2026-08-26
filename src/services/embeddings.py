@@ -32,13 +32,17 @@ def create_question_embeddings(db: Session):
     except Exception as ex:
         logger.error(f"Error creating question embeddings: {ex}")
 
-def create_resume_embeddings(resume_context: text):
+def create_resume_embeddings(retrieval_summary: text, resume_summary: text):
     try:
         resume_embedding = model.encode(
-            resume_context,
+            resume_summary,
             show_progress_bar=False
         ).tolist()
-        return resume_embedding
+        retrieval_embedding = model.encode(
+            retrieval_summary,
+            show_progress_bar=False
+        ).tolist()
+        return resume_embedding, retrieval_embedding
     except Exception as ex:
         logger.error(f"Error creating resume embedding: {ex}")
         return None
