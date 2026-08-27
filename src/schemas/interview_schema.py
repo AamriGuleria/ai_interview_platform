@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 from pydantic import BaseModel
 
 
@@ -16,6 +16,7 @@ class WorkExperience(BaseModel):
 class ResumeContext(BaseModel):
     candidate_name: str
     years_of_experience: int
+    target_role: str = ""
 
     skills: List[str]
 
@@ -23,7 +24,7 @@ class ResumeContext(BaseModel):
 
     work_experience: List[WorkExperience]
 
-    education: List[str]
+    education: List[Union[str, Dict[str, Any]]]
 
     strength_areas: List[str]
 
@@ -31,6 +32,7 @@ class ResumeContext(BaseModel):
 
     difficulty_level: str
     resume_summary: str
+    retrieval_summary: str = ""
 
 class QuestionMetadata(BaseModel):
     category: str

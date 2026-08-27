@@ -25,15 +25,15 @@ logger = getLogger(__name__)
 class LLMModels:
     GEMINI_2_5_FLASH = "gemini/gemini-2.5-flash"
     GEMINI_2_5 = "gemini/gemini-2.5"
-    QWEN_2_5 = "qwen2.5:3b"
-    LLAMA3_2 = "llama3.2:latest"
+    QWEN_2_5 = "ollama/qwen2.5:3b"
+    LLAMA3_2 = "ollama/llama3.2:latest"
     GEMMA2_2B = "ollama/gemma2:2b"
 class LLMService:
     def __init__(self):
         self.client = genai.Client(
             api_key=config.gemini_api_key
         )
-        self.OLLAMA_MODEL = "qwen2.5:3b"
+        self.OLLAMA_MODEL = "ollama/qwen2.5:3b"
 
     @staticmethod
     def chat(
@@ -78,11 +78,13 @@ class LLMService:
             # )
             # return response.parsed
             response = LLMService.chat(
-                model=LLMModels.RESUME_ANALYSIS,
+                model=LLMModels.GEMINI_2_5_FLASH,
                 system_prompt=system_prompt,
                 user_prompt=prompt
             )
-            return response
+            raw = response.choices[0].message.content
+            json_data = self._parse_ollama_json(raw)
+            return ResumeContext.model_validate(json_data)
         except Exception as e:
             raise RuntimeError(f"Failed to generate resume context: {e}")
 

@@ -53,14 +53,16 @@ def extract_resume_context(interview_id: int):
             logger.info(f"Resume text extracted for interview {interview_id}")
 
             gemini_service = LLMService()
-            RESUME_ANALYSIS_USER_PROMPT.format(
+            user_prompt = RESUME_ANALYSIS_USER_PROMPT.format(
                     target_role=interview.target_role,
                     experience=interview.experience,
                     skills=interview.skills,
                     cleaned_text=cleaned_text
                    )
-            RESUME_ANALYSIS_SYSTEM_PROMPT.format(target_role=interview.target_role)
-            response = gemini_service.generate_resume_context(RESUME_ANALYSIS_USER_PROMPT, RESUME_ANALYSIS_SYSTEM_PROMPT)
+            system_prompt = RESUME_ANALYSIS_SYSTEM_PROMPT.replace(
+                "{target_role}", str(interview.target_role)
+            )
+            response = gemini_service.generate_resume_context(user_prompt, system_prompt)
             logger.info(f"LLM context generated for interview {interview_id}")
 
             interview.interview_context = {
