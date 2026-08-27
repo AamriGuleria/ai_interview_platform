@@ -1,7 +1,7 @@
 import logging
 from sqlalchemy import select
 from models.Interview import Interview, InterviewQuestion, InterviewStatus
-from services.embeddings import retrieve_questions_from_embedding
+from services.embeddings import rerank_questions, retrieve_questions_from_embedding
 from services.llm_service import LLMService
 from database.session_manager import db_manager
 
@@ -62,12 +62,11 @@ def prepare_interview(interview_id: int):
             )
 
             # Further filtering and re-ranking
-            # NEXT STEP: re-ranking
-            # questions = rerank_questions(
-            #     questions,
-            #     role_weight=0.70,
-            #     resume_weight=0.30,
-            # )
+            questions = rerank_questions(
+                questions,
+                role_weight=0.70,
+                resume_weight=0.30,
+            )
 
             logger.info(f"Retrieved {len(questions)} questions for interview {interview_id}")
             questions_to_personalize = []

@@ -125,3 +125,15 @@ def filter_questions(
     except Exception as e:
         logger.error(f"Error filtering questions: {e}")
         return []
+
+def rerank_questions(
+    db,
+    resume_embedding,
+    retrieval_embedding,
+    limit=100
+    ):
+    try:
+        pass
+    except Exception as ex:
+        logger.error(f"Error re-ranking questions: {ex}")
+        return []
