@@ -67,7 +67,7 @@ def prepare_interview(interview_id: int):
                 role_weight=0.70,
                 resume_weight=0.30,
             )
-
+            questions = questions[:30]
             logger.info(f"Retrieved {len(questions)} questions for interview {interview_id}")
             questions_to_personalize = []
             question_to_iq = {}

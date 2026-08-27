@@ -127,13 +127,21 @@ def filter_questions(
         return []
 
 def rerank_questions(
-    db,
-    resume_embedding,
-    retrieval_embedding,
-    limit=100
+    questions,
+    role_weight=0.70,
+    resume_weight=0.30,
     ):
     try:
-        pass
+        for question in questions:
+            question.final_score = (
+                role_weight * question.retrieval_similarity
+                + resume_weight * question.resume_similarity
+            )
+        return sorted(
+            questions,
+            key=lambda q: q.final_score,
+            reverse=True
+        )
     except Exception as ex:
         logger.error(f"Error re-ranking questions: {ex}")
         return []
