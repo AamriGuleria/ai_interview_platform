@@ -27,3 +27,5 @@ faster-whisper
 litellm==1.75.0
 celery==5.2.7
 rabbitmq
+celery[redis]
+redis
