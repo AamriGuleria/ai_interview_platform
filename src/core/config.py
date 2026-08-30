@@ -20,7 +20,7 @@ class Config(BaseSettings):
     
     database_url: str = "postgresql://user:password@localhost:5432/db_name"
     async_database_url: str = "postgresql+asyncpg://user:password@localhost:5432/db_name"
-    rabbitmq_url : str = "amqp://admin:admin123@localhost:5672//"
+    # rabbitmq_url : str = "amqp://admin:admin123@localhost:5672//"
     postgres_result_backend : str = "db+postgresql://admin:admin123@localhost:5432/mydatabase"
     echo: bool = False
     pool_size: int = 5
