@@ -11,6 +11,7 @@ import fitz
 import os
 import re
 from core.constants import RESUME_ANALYSIS_USER_PROMPT, RESUME_ANALYSIS_SYSTEM_PROMPT 
+from services.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ def extract_text(file_path: str) -> str:
     pdf.close()
     return "\n".join(pages)
 
+@celery_app.task(bind=True, max_retries=3)
 def extract_resume_context(interview_id: int):
     file_name = None
     response_summary = None

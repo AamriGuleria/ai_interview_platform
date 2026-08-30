@@ -4,6 +4,7 @@ from models.Interview import Interview, InterviewQuestion, InterviewStatus
 from services.embeddings import rerank_questions, retrieve_questions_from_embedding
 from services.llm_service import LLMService
 from database.session_manager import db_manager
+from services.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ def should_personalize(question, resume_context):
 
     return overlap_ratio >= 0.5
 
+@celery_app.task(bind=True, max_retries=3)
 def prepare_interview(interview_id: int):
     try:
         with db_manager.sync_session_scope() as db:
