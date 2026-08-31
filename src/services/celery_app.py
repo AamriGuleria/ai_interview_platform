@@ -1,10 +1,10 @@
 from celery import Celery
-from core.config import rabbitmq_url, postgres_result_backend, redis_url
+from core.config import config
 
 celery_app = Celery(
     "celery_worker",
-    broker=rabbitmq_url,
-    backend=redis_url,
+    broker=config.rabbitmq_url,
+    backend=config.redis_url,
     include=["src.background_tasks"],
 )
 

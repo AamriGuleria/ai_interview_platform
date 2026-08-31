@@ -45,12 +45,12 @@ class Config(BaseSettings):
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_db: int = 0
-    rabbitmq_url= (
-    f"amqp://{rabbitmq_user}:{rabbitmq_password}"
-    f"@{rabbitmq_host}:{rabbitmq_port}//"
+    rabbitmq_url: str = (
+        f"amqp://{rabbitmq_user}:{rabbitmq_password}"
+        f"@{rabbitmq_host}:{rabbitmq_port}//"
     )
-    redis_url= (
-    f"redis://{redis_host}:{redis_port}/{redis_db}"
+    redis_url: str = (
+        f"redis://{redis_host}:{redis_port}/{redis_db}"
     )
-    
+
 config = Config()
