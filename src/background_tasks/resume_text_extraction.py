@@ -33,7 +33,7 @@ def extract_text(file_path: str) -> str:
     return "\n".join(pages)
 
 @celery_app.task(bind=True, max_retries=3)
-def extract_resume_context(interview_id: int):
+def extract_resume_context(self, interview_id: int):
     file_name = None
     response_summary = None
     try:

@@ -66,13 +66,13 @@ class InterviewService:
             await self.db.flush()
             await self.db.commit()
             await self.db.refresh(interview)
-            background_tasks.add_task(
-                extract_resume_context,
-                interview.id
+            extract_resume_context.apply_async(
+                args=[interview.id],
+                link=prepare_interview.si(interview.id),
             )
-            background_tasks.add_task(
-                prepare_interview,
-                interview.id
+            logger.info(
+                "Queued interview processing pipeline for interview_id=%s",
+                interview.id,
             )
             return interview
         except Exception as e:
