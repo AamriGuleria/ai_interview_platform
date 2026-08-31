@@ -81,6 +81,16 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
 
+  celery-worker:
+    build: .
+    command: celery -A src.services.celery_app worker -l info
+    depends_on:
+      - rabbitmq
+      - redis
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      REDIS_HOST: redis
+
 volumes:
   postgres_data:
   minio_data:
