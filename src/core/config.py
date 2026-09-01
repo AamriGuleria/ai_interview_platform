@@ -43,14 +43,16 @@ class Config(BaseSettings):
     rabbitmq_password: str = "admin123"
     redis_port: int = 6379
     redis_db: int = 0
-    rabbitmq_url: str = (
-        f"amqp://{rabbitmq_user}:{rabbitmq_password}"
-        f"@{rabbitmq_host}:{rabbitmq_port}//"
-    )
-    redis_url: str = (
-        f"redis://{redis_host}:{redis_port}/{redis_db}"
-    )
-
     rabbitmq_host: str = "rabbitmq"
     redis_host: str = "redis"
+    @property
+    def rabbitmq_url(self) -> str:
+        return (
+            f"amqp://{self.rabbitmq_user}:{self.rabbitmq_password}"
+            f"@{self.rabbitmq_host}:{self.rabbitmq_port}//"
+        )
+
+    @property
+    def redis_url(self) -> str:
+        return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 config = Config()

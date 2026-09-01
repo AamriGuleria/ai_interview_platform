@@ -5,7 +5,10 @@ celery_app = Celery(
     "celery_worker",
     broker=config.rabbitmq_url,
     backend=config.redis_url,
-    include=["src.background_tasks"],
+    include=[
+        "background_tasks.resume_text_extraction",
+        "background_tasks.prepare_interview",
+    ],
 )
 
 celery_app.conf.update(
