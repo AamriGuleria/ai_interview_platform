@@ -42,7 +42,7 @@ def should_personalize(question, resume_context):
 
     return overlap_ratio >= 0.5
 
-@celery_app.task(bind=True, max_retries=3)
+@celery_app.task(bind=True, max_retries=3,  time_limit=300, soft_time_limit=250, default_retry_delay=60)
 def prepare_interview(self, interview_id: int):
     try:
         with db_manager.sync_session_scope() as db:
@@ -150,4 +150,4 @@ def prepare_interview(self, interview_id: int):
             if interview:
                 interview.status = InterviewStatus.FAILED.value
                 db.commit()
-        raise
+        raise self.retry(exc=e,countdown=60)

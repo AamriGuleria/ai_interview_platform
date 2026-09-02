@@ -22,3 +22,5 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     broker_connection_retry_on_startup=True,
 )
+# Deletes result in 1 hr
+celery_app.conf.result_expires = 3600 

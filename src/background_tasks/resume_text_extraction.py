@@ -32,7 +32,7 @@ def extract_text(file_path: str) -> str:
     pdf.close()
     return "\n".join(pages)
 
-@celery_app.task(bind=True, max_retries=3)
+@celery_app.task(bind=True, max_retries=3, time_limit=300, soft_time_limit=250, default_retry_delay=60)
 def extract_resume_context(self, interview_id: int):
     file_name = None
     response_summary = None
@@ -93,7 +93,7 @@ def extract_resume_context(self, interview_id: int):
             minio_service.delete_file(config.bucket_name, interview.resume_url)
     except Exception as e:
         logger.error(f"Failed to extract resume context due to: {e}")
-        raise
+        raise self.retry(exc=e, countdown=60)
     finally:
         if file_name is not None and os.path.exists(file_name):
             os.remove(file_name)
