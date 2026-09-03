@@ -1,6 +1,6 @@
 from celery import Celery
 from core.config import config
-from kombu import Exchange , Queue
+from kombu import Exchange , Queue, Connection, Producer
 
 interview_exchange = Exchange(
     "interview",
@@ -64,3 +64,22 @@ celery_app.conf.update(
 )
 # Deletes result in 1 hr
 celery_app.conf.result_expires = 3600 
+
+def publish_to_dlq(task_name: str, task_id: str , args, kwargs, error: str):
+    with Connection(config.rabbitmq_url) as connection:
+        producer = Producer(connection)
+
+        producer.publish(
+            {
+                "task_name": task_name,
+                "task_id": task_id,
+                "args": args,
+                "kwargs": kwargs,
+                "error": error,
+            },
+            exchange="interview.dlx",
+            routing_key="interview.failed",
+            serializer="json",
+            declare=[dead_letter_exchange],
+            delivery_mode=2
+        )
