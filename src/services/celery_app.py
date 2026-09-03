@@ -1,5 +1,18 @@
 from celery import Celery
 from core.config import config
+from kombu import Exchange , Queue
+
+interview_exchange = Exchange(
+    "interview",
+    type="direct",
+    durable = True
+)
+
+dead_letter_exchange = Exchange(
+    "interview.dlx",
+    type="direct",
+    durable=True
+)
 
 celery_app = Celery(
     "celery_worker",
@@ -10,11 +23,38 @@ celery_app = Celery(
         "background_tasks.prepare_interview",
     ],
 )
-
 celery_app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
+    task_queues = (
+        Queue(
+            "interview_tasks",
+            exchange = interview_exchange,
+            routing_key="interview.process",
+            durable=True,
+            queue_arguments={
+                "x-dead-letter-exchange": "interview.dlx",
+                "x-dead-letter-routing-key": "interview.failed",
+            },
+        ),
+        Queue(
+            "interview_tasks.dlq",
+            exchange=dead_letter_exchange,
+            routing_key="interview.failed",
+            durable=True,
+        )
+    ),
+    task_routes={
+        "background_tasks.resume_text_extraction.extract_resume_context": {
+            "queue": "interview_tasks",
+            "routing_key": "interview.process",
+        },
+        "background_tasks.prepare_interview.prepare_interview": {
+            "queue": "interview_tasks",
+            "routing_key": "interview.process",
+        },
+    },
     timezone="UTC",
     enable_utc=True,
     task_track_started=True,
