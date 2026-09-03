@@ -4,7 +4,7 @@ from models.Interview import Interview, InterviewQuestion, InterviewStatus
 from services.embeddings import rerank_questions, retrieve_questions_from_embedding
 from services.llm_service import LLMService
 from database.session_manager import db_manager
-from services.celery_app import celery_app
+from services.celery_app import celery_app, publish_to_dlq
 
 logger = logging.getLogger(__name__)
 
@@ -150,4 +150,13 @@ def prepare_interview(self, interview_id: int):
             if interview:
                 interview.status = InterviewStatus.FAILED.value
                 db.commit()
+        if self.request.retries>=self.max_retries:
+            publish_to_dlq(
+                task_name=self.name,
+                task_id=self.request.id,
+                args=[interview_id],
+                kwargs={},
+                error=str(e)
+            )
+            raise
         raise self.retry(exc=e,countdown=60)

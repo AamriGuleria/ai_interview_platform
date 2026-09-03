@@ -11,7 +11,7 @@ import fitz
 import os
 import re
 from core.constants import RESUME_ANALYSIS_USER_PROMPT, RESUME_ANALYSIS_SYSTEM_PROMPT 
-from services.celery_app import celery_app
+from services.celery_app import celery_app, publish_to_dlq
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +93,15 @@ def extract_resume_context(self, interview_id: int):
             minio_service.delete_file(config.bucket_name, interview.resume_url)
     except Exception as e:
         logger.error(f"Failed to extract resume context due to: {e}")
+        if self.request.retries>=self.max_retries:
+            publish_to_dlq(
+                task_name=self.name,
+                task_id=self.request.id,
+                args=[interview_id],
+                kwargs={},
+                error=str(e)
+            )
+            raise
         raise self.retry(exc=e, countdown=60)
     finally:
         if file_name is not None and os.path.exists(file_name):
