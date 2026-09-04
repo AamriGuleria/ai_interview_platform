@@ -100,7 +100,7 @@ services:
 
   celery-worker:
     build: .
-    command: celery -A services.celery_app worker -l info
+    command: celery -A services.celery_app worker -l info -Q interview_tasks
     depends_on:
       - postgres
       - minio

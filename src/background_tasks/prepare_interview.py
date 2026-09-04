@@ -148,7 +148,7 @@ def prepare_interview(self, interview_id: int):
                 select(Interview).where(Interview.id == interview_id)
             ).scalars().one_or_none()
             if interview:
-                interview.status = InterviewStatus.FAILED.value
+                interview.status = InterviewStatus.RETRYING.value
                 db.commit()
         if self.request.retries>=self.max_retries:
             publish_to_dlq(
@@ -158,5 +158,12 @@ def prepare_interview(self, interview_id: int):
                 kwargs={},
                 error=str(e)
             )
+        with db_manager.sync_session_scope() as db:
+            interview = db.execute(
+                select(Interview).where(Interview.id == interview_id)
+            ).scalars().one_or_none()
+            if interview:
+                interview.status = InterviewStatus.FAILED.value
+                db.commit()
             raise
         raise self.retry(exc=e,countdown=60)
