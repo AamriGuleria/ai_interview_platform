@@ -5,10 +5,16 @@ from models.Interview import InterviewQuestion
 from services.llm_service import LLMService
 from database.session_manager import db_manager
 from core.config import config
+from services.celery_app import celery_app
 
 logger = getLogger(__name__)
 
 
+@celery_app.task(
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 3},
+)
 def generate_follow_up_question(interview_question_id: int):
     try:
         with db_manager.sync_session_scope() as db:

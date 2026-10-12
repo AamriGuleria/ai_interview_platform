@@ -112,7 +112,6 @@ class InterviewService:
     async def get_next_interview_question(
         self,
         interview_id: int,
-        background_tasks: BackgroundTasks,
         current_user: Users
     ):
         from database.session_manager import db_manager
@@ -150,10 +149,7 @@ class InterviewService:
             ).scalars().first()
             if not interview_question:
                 # Trigger Overall interview evaluation
-                background_tasks.add_task(
-                    prepare_interview_report,
-                    interview_id
-                )
+                prepare_interview_report.apply_async(args=[interview_id])
                 return {
                     "message": "Interview completed"
                 }
@@ -206,7 +202,7 @@ class InterviewService:
                     )
                 ).scalars().first()
                 if not interview_question:
-                    background_tasks.add_task(prepare_interview_report, interview_id)
+                    prepare_interview_report.apply_async(args=[interview_id])
                     return {"message": "Interview completed"}
                 question_text = interview_question.personalized_question or interview_question.original_question
                 tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
@@ -260,8 +256,7 @@ class InterviewService:
         interview_id: int,
         answer: str,
         current_user: Users,
-        interview_question_id: int,
-        background_tasks: BackgroundTasks
+        interview_question_id: int
     ):
         try:
             interview_question = await self.db.execute(
@@ -282,7 +277,7 @@ class InterviewService:
             await self.db.commit()
             await self.db.refresh(interview_question)
 
-            background_tasks.add_task(generate_follow_up_question, interview_question_id)
+            generate_follow_up_question.apply_async(args=[interview_question_id])
 
             return {"message": "Answer submitted successfully",
                 "interview_question_id": interview_question.id}

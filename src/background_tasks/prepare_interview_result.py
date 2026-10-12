@@ -1,20 +1,23 @@
 from database.session_manager import db_manager
 from models.Interview import Interview
 from services.llm_service import LLMService
+from services.celery_app import celery_app
 
 
+@celery_app.task(
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 3},
+)
 def prepare_interview_report(
     interview_id: int
 ):
-    try:
-        from crud.interview import InterviewService
+    from crud.interview import InterviewService
 
-        with db_manager.sync_session_scope() as sync_db:
-            interview_service = InterviewService(sync_db)
-            interview = interview_service.get_interview(interview_id)
-            prepare_interview_result(interview)
-    except Exception as e:
-        raise
+    with db_manager.sync_session_scope() as sync_db:
+        interview_service = InterviewService(sync_db)
+        interview = interview_service.get_interview(interview_id)
+        prepare_interview_result(interview)
 
 
 def prepare_interview_result(interview: Interview):

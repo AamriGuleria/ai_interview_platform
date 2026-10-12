@@ -56,26 +56,24 @@ async def get_next_question_speech(
 @router.get("/{interview_id}/next-question")
 async def get_next_interview_question(
     interview_id: int,
-    background_tasks: BackgroundTasks,
     # limit: int = 10,
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db)
 
 ):
     service = InterviewService(db)
-    return await service.get_next_interview_question(interview_id, background_tasks, current_user)
+    return await service.get_next_interview_question(interview_id, current_user)
 
 @router.post("/{interview_id}/submit-interview-answer")
 async def submit_answer(
     interview_id: int,
     answer: str,
     interview_question_id: int,
-    background_tasks: BackgroundTasks,
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db)
 ):
     service = InterviewService(db)
-    return await service.submit_answer(interview_id, answer, current_user, interview_question_id, background_tasks)
+    return await service.submit_answer(interview_id, answer, current_user, interview_question_id)
 
 @router.post("/{interview_id}/speech/transcribe")
 async def transcribe_speech(

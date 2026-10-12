@@ -21,6 +21,8 @@ celery_app = Celery(
     include=[
         "background_tasks.resume_text_extraction",
         "background_tasks.prepare_interview",
+        "background_tasks.evaluate_answers",
+        "background_tasks.prepare_interview_result",
     ],
 )
 celery_app.conf.update(
@@ -51,6 +53,14 @@ celery_app.conf.update(
             "routing_key": "interview.process",
         },
         "background_tasks.prepare_interview.prepare_interview": {
+            "queue": "interview_tasks",
+            "routing_key": "interview.process",
+        },
+        "background_tasks.evaluate_answers.generate_follow_up_question": {
+            "queue": "interview_tasks",
+            "routing_key": "interview.process",
+        },
+        "background_tasks.prepare_interview_result.prepare_interview_report": {
             "queue": "interview_tasks",
             "routing_key": "interview.process",
         },
