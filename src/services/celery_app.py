@@ -64,6 +64,10 @@ celery_app.conf.update(
             "queue": "interview_tasks",
             "routing_key": "interview.process",
         },
+        "background_tasks.evaluate_answers.evaluate_answer": {
+            "queue": "interview_tasks",
+            "routing_key": "interview.process",
+        },
     },
     timezone="UTC",
     enable_utc=True,
