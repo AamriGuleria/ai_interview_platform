@@ -90,7 +90,11 @@ def generate_follow_up_question(interview_question_id: int):
         logger.error(f"Error generating follow-up question for interview question {interview_question_id}: {e}")
         raise
 
-
+@celery_app.task(
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 3},
+)
 def evaluate_answer(interview_question_id: int):
     try:
         with db_manager.sync_session_scope() as db:
