@@ -278,6 +278,7 @@ class InterviewService:
             await self.db.refresh(interview_question)
 
             generate_follow_up_question.apply_async(args=[interview_question_id])
+            evaluate_answer.apply_async(args=[interview_question_id])
 
             return {"message": "Answer submitted successfully",
                 "interview_question_id": interview_question.id}
