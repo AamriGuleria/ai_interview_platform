@@ -38,6 +38,7 @@ class Config(BaseSettings):
     gemini_api_key: str = "hello"
     question_evaluation_mode: str = "overall"
     max_follow_ups_per_interview: int = 3
+    follow_up_score_threshold: int = 70
     rabbitmq_port: int = 5672
     rabbitmq_user: str = "admin"
     rabbitmq_password: str = "admin123"

@@ -10,13 +10,28 @@ from services.celery_app import celery_app
 logger = getLogger(__name__)
 
 
+def should_generate_follow_up(score: float, evaluation_recommends_follow_up: bool) -> bool:
+    return (
+        evaluation_recommends_follow_up
+        and score < config.follow_up_score_threshold
+    )
+
+
 @celery_app.task(
     autoretry_for=(Exception,),
     retry_backoff=True,
     retry_kwargs={"max_retries": 3},
 )
-def generate_follow_up_question(interview_question_id: int):
+def generate_follow_up_question(evaluation: dict):
     try:
+        interview_question_id = evaluation["interview_question_id"]
+        if not evaluation["should_follow_up"]:
+            logger.info(
+                "Skipping follow-up for interview question %s: evaluation criteria not met",
+                interview_question_id,
+            )
+            return
+
         with db_manager.sync_session_scope() as db:
             interview_question = db.execute(
                 select(InterviewQuestion)
@@ -28,11 +43,6 @@ def generate_follow_up_question(interview_question_id: int):
                 logger.error(f"Interview question {interview_question_id} not found")
                 return
 
-            if interview_question.is_follow_up:
-                logger.info(
-                    f"Skipping follow-up generation for follow-up question {interview_question_id}"
-                )
-                return
 
             user_answer = interview_question.user_answer
             if not user_answer:
@@ -40,6 +50,19 @@ def generate_follow_up_question(interview_question_id: int):
                 return
 
             interview = interview_question.interview
+            existing_follow_up = db.execute(
+                select(InterviewQuestion.id).where(
+                    InterviewQuestion.parent_question_id == interview_question_id,
+                    InterviewQuestion.is_follow_up.is_(True),
+                )
+            ).scalar_one_or_none()
+            if existing_follow_up is not None:
+                logger.info(
+                    "Follow-up already exists for interview question %s",
+                    interview_question_id,
+                )
+                return
+
             resume_context = interview.interview_context or {}
             current_follow_up_count = db.execute(
                 select(func.count(InterviewQuestion.id)).where(
@@ -106,7 +129,10 @@ def evaluate_answer(interview_question_id: int):
 
             if not interview_question:
                 logger.error(f"Interview question {interview_question_id} not found")
-                return
+                return {
+                    "interview_question_id": interview_question_id,
+                    "should_follow_up": False,
+                }
 
             interview = interview_question.interview
             resume_context = interview.interview_context or {}
@@ -117,7 +143,10 @@ def evaluate_answer(interview_question_id: int):
 
             if not user_answer:
                 logger.error(f"No user answer for interview question {interview_question_id}")
-                return
+                return {
+                    "interview_question_id": interview_question_id,
+                    "should_follow_up": False,
+                }
 
             llm_service = LLMService()
             result = llm_service.get_question_evaluation(
@@ -135,6 +164,16 @@ def evaluate_answer(interview_question_id: int):
             interview_question.gaps = result.gaps
             db.add(interview_question)
             logger.info(f"Evaluation saved for interview question {interview_question_id}: score={result.score}")
+            should_follow_up = should_generate_follow_up(
+                result.score,
+                result.follow_ups,
+            )
+
+        return {
+            "interview_question_id": interview_question_id,
+            "should_follow_up": should_follow_up,
+            "score": result.score,
+        }
 
     except Exception as e:
         logger.error(f"Error evaluating answer for interview question {interview_question_id}: {e}")

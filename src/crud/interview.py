@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 from uuid import uuid4
+from celery import chain
 import os
 import tempfile
 from fastapi.responses import FileResponse
@@ -277,8 +278,10 @@ class InterviewService:
             await self.db.commit()
             await self.db.refresh(interview_question)
 
-            generate_follow_up_question.apply_async(args=[interview_question_id])
-            evaluate_answer.apply_async(args=[interview_question_id])
+            chain(
+                evaluate_answer.s(interview_question_id),
+                generate_follow_up_question.s(),
+            ).apply_async()
 
             return {"message": "Answer submitted successfully",
                 "interview_question_id": interview_question.id}
