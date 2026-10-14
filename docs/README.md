@@ -2,6 +2,8 @@
 
 This document explains the architecture of the AI Interview Platform and the core retrieval concepts behind it, including embeddings, cosine similarity, pgvector, semantic search, RAG, and async processing.
 
+For implementation-grounded interview questions and detailed sample answers, see the [Interview Preparation Guide](./INTERVIEW_PREPARATION.md).
+
 ---
 
 ## 1. Project Overview
