@@ -311,7 +311,8 @@ class InterviewService:
             interview_result = await self.db.execute(
                 select(Interview)
                 .where(
-                    Interview.id == interview_id
+                    Interview.id == interview_id,
+                    Interview.user_id == current_user.id
                 )
             )
             interview = interview_result.scalars().one_or_none()
@@ -340,6 +341,8 @@ class InterviewService:
                 "technical_score": interview.technical_score   
             }
             return result
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Error fetching interview result: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
