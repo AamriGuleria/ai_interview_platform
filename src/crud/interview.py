@@ -266,6 +266,18 @@ class InterviewService:
                     InterviewQuestion.interview_id == interview_id
                 )
             )
+            interview = await self.db.execute(
+                select(Interview).where(
+                    Interview.id == interview_id,
+                    Interview.user_id == current_user.id
+                )
+            ).scalars().one_or_none()
+            if not interview:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Interview not found"
+                )
+            
             interview_question = interview_question.scalars().one_or_none()
             if not interview_question:
                 raise HTTPException(
